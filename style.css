@@ -23,6 +23,7 @@ body{
 
 .jobListing{
     margin: 1%;
+    margin-bottom: 10%;
     background-color: rgb(50, 87, 189);
     color: white;
     padding-bottom: 10px;
