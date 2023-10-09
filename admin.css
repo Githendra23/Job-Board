@@ -1,0 +1,21 @@
+html{
+    background-color: rgb(40, 40, 78);
+    min-height: 100%;
+    min-width: 100%;
+}
+.background{
+    /* color: white; */
+    align-items: center;
+    background-color: rgb(40, 40, 78);
+    min-height: 100%;
+    min-width: 100%;
+}
+
+.selector{
+    padding-left: 1%;
+    text-align: center;
+    background:linear-gradient(rgb(228, 153, 56),rgb(129, 32, 32));
+    color:white;
+    display: flex;
+    gap: 10%;
+}
