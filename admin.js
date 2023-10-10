@@ -19,7 +19,7 @@ company.addEventListener('click',function()
         }
     })
     .then(function(data){
-        content.innerHTML=data;
+        content.innerHTML=JSON.stringify(data);
         console.log(data);
         
 })
@@ -30,16 +30,61 @@ company.addEventListener('click',function()
 user.addEventListener('click',function()
 {
     content.innerHTML="users :3"
+    content.innerHTML="company :("
+    fetch("http://localhost:8080/api/work_trailer/candidate")
+    .then(function(response){
+
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error occurred while fetching data.');
+        }
+    })
+    .then(function(data){
+        content.innerHTML=JSON.stringify(data);
+        console.log(data);
+        
+})
 }
 )
 ad.addEventListener('click',function()
 {
     content.innerHTML="ads :/"
+    content.innerHTML="company :("
+    fetch("http://localhost:8080/api/work_trailer/advertisement")
+    .then(function(response){
+
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error occurred while fetching data.');
+        }
+    })
+    .then(function(data){
+        content.innerHTML=JSON.stringify(data);
+        console.log(data);
+        
+})
 }
 )
 app.addEventListener('click',function()
 {
     content.innerHTML="job applications..................."
+    content.innerHTML="company :("
+    fetch("http://localhost:8080/api/work_trailer/job_application")
+    .then(function(response){
+
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error occurred while fetching data.');
+        }
+    })
+    .then(function(data){
+        content.innerHTML=JSON.stringify(data);
+        console.log(data);
+        
+})
 }
 )
 // var colordir=false
