@@ -20,7 +20,7 @@ company.addEventListener('click',function()
     })
     .then(function(data){
         content.innerHTML=JSON.stringify(data);
-        console.log(data);
+        console.log(data.name);
         
 })
     
