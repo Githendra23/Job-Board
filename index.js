@@ -27,7 +27,7 @@ for (const tableName of table)
         db.query(`SELECT count(*) FROM ${tableName}`, (error, result, fields) => {
             if (error) 
             {
-                res.send({ message: error })
+                res.status(500).send({ message: error })
             }
 
             const TOTAL = result[0]['count(*)'];
@@ -79,3 +79,105 @@ for (const tableName of table)
         });
     }); */
 }
+
+/* ---------------------------- POST CREATE ---------------------------- */
+
+app.post(`/api/work_trailer/${table[0]}/add`, (req, res) => {
+    const { name, surname, age, address, country, telephone, email, password } = req.body;
+
+    if (!name || !surname || !age || !address || !country || !telephone || !email || !password)
+    {
+        res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
+    }
+    else
+    {
+        const sql = `INSERT INTO ${table[0]} (name, surname, age, address, country, telephone, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        const values = [name, surname, age, address, country, telephone, email, password];
+
+        db.query(sql, values, (error, result, fields) => {
+            if (error)
+            {
+                res.status(500).json({ message: error });
+            }
+            else
+            {
+                res.status(200).json({ message: `${table[0]} data inserted successfully.` });
+            }
+        });
+    }
+});
+
+app.post(`/api/work_trailer/${table[1]}/add`, (req, res) => {
+    const { name, email, password, telephone, description, country } = req.body;
+
+    if (!name || !description || !country || !telephone || !email || !password)
+    {
+        res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
+    }
+    else
+    {
+        const sql = `INSERT INTO ${table[1]} (name, description, country, telephone, email, password) VALUES (?, ?, ?, ?, ?, ?)`;
+        const values = [name, description, country, telephone, email, password];
+
+        db.query(sql, values, (error, result, fields) => {
+            if (error)
+            {
+                res.status(500).json({ message: error });
+            }
+            else
+            {
+                res.status(200).json({ message: `${table[1]} data inserted successfully.` });
+            }
+        });
+    }
+});
+
+app.post(`/api/work_trailer/${table[2]}/add`, (req, res) => {
+    const { title, description, address, employment_contact_type, country, wage, tag, company_id } = req.body;
+
+    if (!title || !description || !address || !employment_contact_type || !country || !wage || !company_id)
+    {
+        res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
+    }
+    else
+    {
+        const sql = `INSERT INTO ${table[2]} (title, description, address, employment_contact_type, country, wage, tag, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        const values = [title, description, address, employment_contact_type, country, wage];
+
+        db.query(sql, values, (error, result, fields) => {
+            if (error)
+            {
+                res.status(500).json({ message: error });
+            }
+            else
+            {
+                res.status(200).json({ message: `${table[2]} data inserted successfully.` });
+            }
+        });
+    }
+});
+
+app.post(`/api/work_trailer/${table[3]}/add`, (req, res) => {
+    const { user_id, advertisement_id, advertisement_company_id, cv, cover_letter } = req.body;
+
+    if (!user_id || !advertisement_id || !advertisement_company_id || !cv || !cover_letter)
+    {
+        res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
+    }
+    else
+    {
+        const sql = `INSERT INTO ${table[3]} (user_id, advertisement_id, advertisement_company_id, cv, cover_letter) VALUES (?, ?, ?, ?, ?)`;
+        const values = [user_id, advertisement_id, advertisement_company_id, cv, cover_letter];
+
+        db.query(sql, values, (error, result, fields) => {
+            if (error)
+            {
+                res.status(500).json({ message: error });
+            }
+            else
+            {
+                res.status(200).json({ message: `${table[3]} data inserted successfully.` });
+            }
+        });
+    }
+});
