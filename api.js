@@ -23,6 +23,8 @@ app.listen(PORT);
 
 const table = ['candidate', 'company', 'advertisement', 'job_application'];
 
+/* ---------------------------- GET ---------------------------- */
+
 for (const tableName of table)
 {
     app.get(`/api/work_trailer/${tableName}/total`, (req, res) => {
@@ -41,12 +43,17 @@ for (const tableName of table)
     app.get(`/api/work_trailer/${tableName}`, (req, res) => {
         db.query(`SELECT * FROM ${tableName}`, (error, result, fields) => {
             if (error) throw error;
-
-            const data = result.map(row => ({ ...row }));
-
-            res.status(200).json( data );
+    
+            const data = result.map(row => {
+                // Create a new object without the 'password' key
+                const { password, ...newRow } = row;
+                return newRow;
+            });
+    
+            res.status(200).json(data);
         });
     });
+    
 
     app.get(`/api/work_trailer/${tableName}/:id`, (req, res) => {
         const { id } = req.params;
@@ -54,7 +61,11 @@ for (const tableName of table)
         db.query(`SELECT * FROM ${tableName} WHERE id = ?`, [id], (error, result, fields) => {
             if (error) throw error;
 
-            const data = result.map(row => ({ ...row }));
+            const data = result.map(row => {
+                // Create a new object without the 'password' key
+                const { password, ...newRow } = row;
+                return newRow;
+            });
 
             res.status(200).json( data );
         });
