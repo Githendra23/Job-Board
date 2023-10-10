@@ -30,7 +30,7 @@ company.addEventListener('click',function()
 user.addEventListener('click',function()
 {
     content.innerHTML="users :3"
-    content.innerHTML="company :("
+    
     fetch("http://localhost:8080/api/work_trailer/candidate")
     .then(function(response){
 
@@ -50,7 +50,6 @@ user.addEventListener('click',function()
 ad.addEventListener('click',function()
 {
     content.innerHTML="ads :/"
-    content.innerHTML="company :("
     fetch("http://localhost:8080/api/work_trailer/advertisement")
     .then(function(response){
 
@@ -70,7 +69,6 @@ ad.addEventListener('click',function()
 app.addEventListener('click',function()
 {
     content.innerHTML="job applications..................."
-    content.innerHTML="company :("
     fetch("http://localhost:8080/api/work_trailer/job_application")
     .then(function(response){
 
