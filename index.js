@@ -1,6 +1,9 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const mysql = require('mysql');
 const PORT = 8080;
+
+app.use(express.json());
 
 var db = mysql.createConnection({
     host: "localhost",
@@ -14,74 +17,65 @@ db.connect((err) => {
     console.log("Connected!");
 });
 
-app.listen(
-    PORT
-);
+app.listen(PORT);
 
-/* --------------------- candidates --------------------- */
+const table = ['candidate', 'company', 'advertisement', 'job_application'];
 
-app.get('/api/advertisement/candidate/total', (req, res) => {
-    db.query("SELECT count(*) FROM candidate", (error, result, fields) => {
-        if (error) throw error;
+for (const tableName of table)
+{
+    app.get(`/api/work_trailer/${tableName}/total`, (req, res) => {
+        db.query(`SELECT count(*) FROM ${tableName}`, (error, result, fields) => {
+            if (error) 
+            {
+                res.send({ message: error })
+            }
 
-        const TOTAL = result[0]['count(*)'];
+            const TOTAL = result[0]['count(*)'];
 
-        res.status(200).json( TOTAL );
+            res.status(200).json( TOTAL );
+        });
     });
-});
 
-app.get('/api/advertisement/candidate', (req, res) => {
-    db.query("SELECT * FROM candidate", (error, result, fields) => {
-        if (error) throw error;
+    app.get(`/api/work_trailer/${tableName}`, (req, res) => {
+        db.query(`SELECT * FROM ${tableName}`, (error, result, fields) => {
+            if (error) throw error;
 
-        const CANDIDATES = result.map(row => ({ ...row }));
+            const DATA = result.map(row => ({ ...row }));
 
-        res.status(200).json( CANDIDATES );
+            res.status(200).json( DATA );
+        });
     });
-});
 
-app.get('/api/advertisement/candidate/:id', (req, res) => {
-    const { id } = req.params;
+    app.get(`/api/work_trailer/${tableName}/:id`, (req, res) => {
+        const { id } = req.params;
 
-    db.query("SELECT * FROM candidate WHERE id = ?", [id], (error, result, fields) => {
-        if (error) throw error;
+        db.query(`SELECT * FROM ${tableName} WHERE id = ?`, [id], (error, result, fields) => {
+            if (error) throw error;
 
-        const CANDIDATE = result.map(row => ({ ...row }));
+            const DATA = result.map(row => ({ ...row }));
 
-        res.status(200).json( CANDIDATE );
+            res.status(200).json( DATA );
+        });
     });
-});
 
-/* --------------------- companies --------------------- */
+    /* app.put(`/api/work_trailer/update/${tableName}/:id`, (req, res) => {
+        const { id } = req.params;
+        const { data } = req.body;
 
-app.get('/api/advertisement/company/total', (req, res) => {
-    db.query("SELECT count(*) FROM company", (error, result, fields) => {
-        if (error) throw error;
+        db.query(`UPDATE ${tableName} SET ... WHERE id = ${id}`, (error, result, fields) => {
+            if (error) throw error;
 
-        const TOTAL = result[0]['count(*)'];
+            
+        });
 
-        res.status(200).json( TOTAL );
-    });
-});
+        if (!data)
+        {
+            res.status(418).send({ message: 'You need to provide data in JSON format to update!'})
+        }
 
-app.get('/api/advertisement/company', (req, res) => {
-    db.query("SELECT * FROM company", (error, result, fields) => {
-        if (error) throw error;
-
-        const COMPANIES = result.map(row => ({ ...row }));
-
-        res.status(200).json( COMPANIES );
-    });
-});
-
-app.get('/api/advertisement/company/:id', (req, res) => {
-    const { id } = req.params;
-
-    db.query("SELECT * FROM candidate WHERE id = ?", [id], (error, result, fields) => {
-        if (error) throw error;
-
-        const CANDIDATE = result.map(row => ({ ...row }));
-
-        res.status(200).json( CANDIDATE );
-    });
-});
+        res.send({
+            add: `${data}`,
+            id: `${id}`
+        });
+    }); */
+}
