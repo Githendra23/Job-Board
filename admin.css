@@ -1,21 +1,38 @@
-html{
+html,body{
     background-color: rgb(40, 40, 78);
+    color: white;
     min-height: 100%;
     min-width: 100%;
 }
 .background{
     /* color: white; */
     align-items: center;
+    color: white;
     background-color: rgb(40, 40, 78);
     min-height: 100%;
     min-width: 100%;
 }
 
+button{
+    color: white;
+    background-color: rgba(240, 248, 255, 0);
+    border-color: rgba(255, 240, 31, 0.274);
+}
+
+
 .selector{
+    position: fixed;
+    top: 0;
+    min-width: 100%;
     padding-left: 1%;
     text-align: center;
     background:linear-gradient(rgb(228, 153, 56),rgb(129, 32, 32));
     color:white;
     display: flex;
-    gap: 10%;
+    gap: 2%;
 }
+
+.content{
+    margin-top: 50px;
+}
+
