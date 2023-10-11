@@ -19,8 +19,15 @@ company.addEventListener('click',function()
         }
     })
     .then(function(data){
-        content.innerHTML=JSON.stringify(data);
-        console.log(data.name);
+        for (let datas in data)    
+            {
+                content.innerHTML+=`
+                <tr>
+                    <td>${datas}</td>
+                    <td>${data[datas]}</td>
+                    
+                </tr>
+                `;}
         
 })
     
