@@ -2,7 +2,28 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const mysql = require('mysql');
+const bcrypt = require('bcryptjs');
 const PORT = 8080;
+
+/* (async () => {
+    const bcrypt = require('bcryptjs');
+
+    try 
+    {
+        let text =  "okay";
+
+        let salt = await bcrypt.genSalt(10);
+        let hash = await bcrypt.hash(text, salt);
+        console.log(hash);
+
+        let compare = await bcrypt.compare(text, hash);
+        console.log(compare);
+    }
+    catch (error)
+    {
+        console.log(error.message);
+    }
+}) */
 
 app.use(cors());
 app.use(express.json());
@@ -21,7 +42,7 @@ db.connect((err) => {
 
 app.listen(PORT);
 
-const table = ['candidate', 'company', 'advertisement', 'job_application'];
+const table = ['candidate', 'company', 'employer', 'advertisement', 'job_application'];
 
 /* ---------------------------- GET ---------------------------- */
 
@@ -74,28 +95,29 @@ for (const tableName of table)
 
 /* ---------------------------- POST CREATE ---------------------------- */
 
-app.post(`/api/work_trailer/${table[0]}/add`, (req, res) => {
+app.post(`/api/work_trailer/${table[0]}/add`, async (req, res) => {
     const { name, surname, age, address, country, telephone, email, password } = req.body;
 
-    if (!name || !surname || !age || !address || !country || !telephone || !email || !password)
-    {
+    if (!name || !surname || !age || !address || !country || !telephone || !email || !password) {
         res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
-    }
-    else
-    {
-        const sql = `INSERT INTO ${table[0]} (name, surname, age, address, country, telephone, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-        const values = [name, surname, age, address, country, telephone, email, password];
+    } else {
+        try {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
 
-        db.query(sql, values, (error, result, fields) => {
-            if (error)
-            {
-                res.status(500).json({ message: error });
-            }
-            else
-            {
-                res.status(200).json({ message: `${table[0]} data inserted successfully.` });
-            }
-        });
+            const sql = `INSERT INTO ${table[0]} (name, surname, age, address, country, telephone, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            const values = [name, surname, age, address, country, telephone, email, hashedPassword];
+
+            db.query(sql, values, (error, result, fields) => {
+                if (error) {
+                    res.status(500).json({ message: error });
+                } else {
+                    res.status(200).json({ message: `${table[0]} data inserted successfully.` });
+                }
+            });
+        } catch (error) {
+            res.status(500).json({ message: 'Error hashing the password.' });
+        }
     }
 });
 
@@ -238,5 +260,38 @@ for (const tableName of table)
                 res.status(200).send({ message: `id ${id} was succesfully deleted`});
             }
         });
+    });
+}
+
+/* ---------------------------- VERIFY AUTHENTICATION ---------------------------- */
+
+for (let i = 0; i < 3; i++) {
+    const tableName = table[i];
+
+    app.post(`/api/work_trailer/${tableName}/verify/:id`, async (req, res) => {
+        const { id } = req.params;
+        const { password } = req.body;
+        let hashedPassword = '';
+    
+        try
+        {
+            db.query(`SELECT password FROM ${tableName} WHERE id = ?`, [id], (error, result, fields) => {
+                if (result.length === 0) 
+                {
+                    return res.status(404).json({ message: 'Record not found' });
+                }
+
+                hashedPassword = result[0].password;
+            });
+            
+            const isMatch = await bcrypt.compare(password, hashedPassword);
+    
+            res.status(200).json({ isMatch });
+        } 
+        catch (error) 
+        {
+            console.error(error);
+            res.status(500).json({ message: 'An error occurred' });
+        }
     });
 }
