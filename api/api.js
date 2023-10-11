@@ -50,7 +50,7 @@ for (const tableName of table)
                 return newRow;
             });
     
-            res.status(200).json(data);
+            res.status(200).json( data );
         });
     });
     
@@ -67,7 +67,7 @@ for (const tableName of table)
                 return newRow;
             });
 
-            res.status(200).json( data );
+            res.status(200).json( data[0] );
         });
     });
 }
