@@ -5,26 +5,6 @@ const mysql = require('mysql');
 const bcrypt = require('bcryptjs');
 const PORT = 8080;
 
-/* (async () => {
-    const bcrypt = require('bcryptjs');
-
-    try 
-    {
-        let text =  "okay";
-
-        let salt = await bcrypt.genSalt(10);
-        let hash = await bcrypt.hash(text, salt);
-        console.log(hash);
-
-        let compare = await bcrypt.compare(text, hash);
-        console.log(compare);
-    }
-    catch (error)
-    {
-        console.log(error.message);
-    }
-}) */
-
 app.use(cors());
 app.use(express.json());
 
@@ -275,8 +255,7 @@ for (const tableName of table)
                 return res.status(200).json({ message: `${tableName} data updated successfully.` });
         });
     });
-}
-  
+} 
 
 /* ---------------------------- DELETE ---------------------------- */
 
@@ -339,7 +318,7 @@ async function isAccountExist(tableName, email)
             if (error) 
             {
                 reject(error);
-            } 
+            }
             else 
             {
                 const emailCount = result[0].emailCount;
