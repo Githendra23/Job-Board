@@ -271,7 +271,7 @@ for (const tableName of table)
                 return res.status(500).json({ message: 'An error occurred while deleting.' });
             }
 
-            return res.status(200).send({ message: `id ${id} was succesfully deleted`});
+            return res.status(200).json({ message: `id ${id} was succesfully deleted`});
         });
     });
 }
@@ -282,11 +282,11 @@ for (let i = 0; i < 3; i++)
 {
     const tableName = table[i];
 
-    app.post(`/api/work_trailer/${tableName}/verify/:id`, async (req, res) => {
-        const { id } = req.params;
+    app.post(`/api/work_trailer/${tableName}/verify`, async (req, res) => {
+        const { email } = req.body;
         const { password } = req.body;
     
-        db.query(`SELECT password FROM ${tableName} WHERE id = ?`, [id], async (error, result, fields) => {
+        db.query(`SELECT password FROM ${tableName} WHERE email = ?`, [email], async (error, result, fields) => {
             if (error)
             {
                 console.error(error);
