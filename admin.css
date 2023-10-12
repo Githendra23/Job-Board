@@ -15,7 +15,7 @@ html,body{
 
 button{
     color: white;
-    background-color: rgba(240, 248, 255, 0);
+    background-color: rgba(59, 45, 5, 0.13);
     border-color: rgba(255, 240, 31, 0.274);
 }
 
@@ -36,3 +36,35 @@ button{
     margin-top: 50px;
 }
 
+
+td,tr,tbody{
+    border: 2px solid red;
+    /* border-radius: 3px; */
+    /* border-color: rgb(65, 158, 189); */
+    /* border-style: solid; */
+    border-collapse: collapse;
+    color:orange;
+    /* background: rgb(33, 59, 82); */
+    margin:2%;
+    max-width: 94%;
+}
+table,input{
+    margin: 2%;
+    max-width: 94%;
+}
+
+th{
+    background:linear-gradient(rgb(228, 153, 56),rgba(129, 32, 32));
+    color:white;
+}
+
+td,input{
+    background: linear-gradient(rgb(55, 55, 107),rgb(40, 40, 78));
+    color:white;
+    border:solid 1px yellow;
+}
+body table, body .table{
+    /* color: white; */
+    --bs-table-color: #fff;
+    border:solid 1px yellow;
+}

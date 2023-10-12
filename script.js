@@ -12,21 +12,38 @@ var bg = document.getElementById("background");
 // </div>`
 
 
+    fetch("http://localhost:8080/api/work_trailer/advertisement")
+    .then(function(response){
 
-for (let i = 0; i<=100  ; i++)
-{
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error occurred while fetching data.');
+        }
+    })
+    .then(function(data){
+    if (Object.keys(data).length>0)    
+    {    
+        for (let i = 0; i<Object.keys(data).length  ; i++)
+        {
 
-    bg.innerHTML+=`<div id="jobListing, `+i+`" class="jobListing">
-    <h1 id="title,`+i+`" class="title">Title</h1>
-    <h3 id="descr,`+i+`" class="descr">description<br>second line <br>third line<br>too many lines</h3>
-    <button id="learnMore,`+i+`" class="learnMore" onclick="learn(`+i+`)">Learn more</button>
-    <div id="addInfo,`+i+`" class="addInfo">
-    
-    </div>
-    <button id="apply,`+i+`" class="learnMore" onclick="apply(`+i+`)">Apply</button>
-    `+i;
+            bg.innerHTML+=`<div id="jobListing, `+i+`" class="jobListing">
+            <h1 id="title,`+i+`" class="title">${data[i]["title"]}</h1>
+            <h3 id="descr,`+i+`" class="descr">${data[i]["description"]}</h3>
+            <button id="learnMore,`+i+`" class="learnMore" onclick="learn(`+i+`)">Learn more</button>
+            <div id="addInfo,`+i+`" class="addInfo">
+            
+            </div>
+            <button id="apply,`+i+`" class="learnMore" onclick="apply(`+i+`)">Apply</button>
+            `;
 
-}
+        }}
+        else
+        {
+            bg.innerHTML+="There are no job offers currently....."
+        }
+    })
+
     // var learnBtn=document.getElementsByClassName("learnMore")[i];
     // var info = document.getElementsByClassName("addInfo")[i];
     // var applyBtn=document.getElementsByClassName("apply")[i];
@@ -62,18 +79,30 @@ for (let i = 0; i<=100  ; i++)
 
 
     function learn(num){
+        fetch("http://localhost:8080/api/work_trailer/advertisement")
+    .then(function(response){
+
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error occurred while fetching data.');
+        }
+    })
+    .then(function(data){
     var info = document.getElementsByClassName("addInfo")[num];
     isApplying=false;
-    info.innerHTML=`<h1 id="title, `+num+`" >Title</h1>
-    <h3 id="descr">description<br>second line <br>third line<br>too many lines</h3>
+    info.innerHTML=`<h2 id="title, `+num+`">${data[num]["title"]}</h2>
+    <h4>${data[num]["description"]}</h4>
+    <h4>Salary: ${data[num]["wage"]}</h4>
+    <h4>Address: ${data[num]["address"]}, ${data[num]["country"]}</h4>
+    <h4 class="tag">tags: ${data[num]["tag"]}</h4>
     </div>`
-        
+    })
     }
 
     function apply(num)
     {
-        if (isApplying==false)
-        {
+
             var info = document.getElementsByClassName("addInfo")[num];
             isApplying=true;
             info.innerHTML=`<form>
@@ -83,7 +112,7 @@ for (let i = 0; i<=100  ; i++)
             <input type="tel" id="phone" placeholder="Phone number">
             <input type="submit">
         </form>`
-        }
+
     }
 
 
