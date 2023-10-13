@@ -1,46 +1,65 @@
 const express = require('express');
-const db = require('../db');
 const bcrypt = require('bcryptjs');
+const db = require('../db');
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-    db.query(`SELECT * FROM employer`, (error, result, fields) => {
-        if (error) 
-        {
-            res.status(500).json({
-                message: "Couldn't get employer table"
-            });
-        }
+const handleDatabaseOperation = async (res, sql, values) => {
+    try 
+    {
+        const result = await db.query(sql, values);
+        return result;
+    } 
+    catch (error) 
+    {
+        console.error(error);
+        return null;
+    }
+};
 
-        const data = result.map(row => {
-            // Create a new object without the 'password' key
-            const { password, ...newRow } = row;
-            return newRow;
-        });
+router.get('/', async (req, res) => {
+    const sql = 'SELECT * FROM employer';
+    const result = await handleDatabaseOperation(res, sql);
 
-        return res.status(200).json(data);
+    if (!result) 
+    {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+    if (result.length === 0) 
+    {
+        return res.status(404).json({ message: 'Resource not found' });
+    }
+
+    const data = result.map(row => {
+        const { password, ...newRow } = row;
+        return newRow;
     });
+
+    return res.status(200).json(data);
 });
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res) => {
     const { id } = req.params;
+    const sql = 'SELECT * FROM employer WHERE id = ?';
+    const values = [id];
+    const result = await handleDatabaseOperation(res, sql, values);
 
-    db.query(`SELECT * FROM employer WHERE id = ${id}`, (error, result, fields) => {
-        if (error) 
-        {
-            res.status(500).json({
-                message: "employer doesn't exist"
-            });
-        }
+    if (!result) 
+    {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
 
-        const data = result.map(row => {
-            // Create a new object without the 'password' key
-            const { password, ...newRow } = row;
-            return newRow;
-        });
+    if (result.length === 0) 
+    {
+        return res.status(404).json({ message: 'Resource not found' });
+    }
 
-        return res.status(200).json(data[0]);
+    const data = result.map(row => {
+        const { password, ...newRow } = row;
+        return newRow;
     });
+
+    return res.status(200).json(data);
 });
 
 router.post(`/`, async (req, res) => {
@@ -48,27 +67,24 @@ router.post(`/`, async (req, res) => {
 
     if (!name || !surname || !telephone || !email || !password || !company_id) 
     {
-        return res.status(400).json({ message: 'You need to provide all the information of the new employer!' });
-    } 
+        return res.status(400).json({ message: 'Please provide all required information for the new employer.' });
+    }
 
     let sql = `SELECT COUNT(*) AS emailCount FROM employer WHERE email = ?`;
     let values = [email];
 
-    db.query(sql, values, (error, result, fields) => {
-        if (error) 
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'Error adding new employer.'})
-        }
-        else 
-        {
-            const emailCount = result[0].emailCount;
-            if (emailCount > 0) 
-            {
-                return res.status(409).send({ message: `The email has been used.` });
-            } 
-        }
-    });
+    const emailCountResult = await handleDatabaseOperation(res, sql, values);
+
+    if (!emailCountResult) 
+    {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+    const emailCount = emailCountResult[0].emailCount;
+    if (emailCount > 0) 
+    {
+        return res.status(409).json({ message: 'The provided email address is already in use.' });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -76,33 +92,25 @@ router.post(`/`, async (req, res) => {
     sql = `INSERT INTO employer (name, surname, telephone, email, password, company_id) VALUES (?, ?, ?, ?, ?, ?)`;
     values = [name, surname, telephone, email, hashedPassword, company_id];
 
-    db.query(sql, values, (error, result, fields) => {
-        if (error) 
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'An error occurred while hashing the password.' });
-        } 
-
-        return res.status(200).json({ message: `Employer data inserted successfully.` });
-    });
+    await handleDatabaseOperation(res, sql, values);
+    return res.status(200).json({ message: 'Employer data inserted successfully.' });
 });
 
-router.put(`/:id`, (req, res) => {
+router.put(`/:id`, async (req, res) => {
     const { id } = req.params;
     const { data } = req.body;
 
     if (!data) 
     {
-        return res.status(400).json({ message: 'You need to provide data to update the database!' });
-    } 
+        return res.status(400).json({ message: 'Please provide data for updating the database.' });
+    }
 
     const numberOfKeys = Object.keys(data).length;
     let sql = '';
+    let values = [id];
 
-    let count = 0;
-    for (const key in data) 
-    {
-        if (key === 'id' || 'age')
+    for (const key in data) {
+        if (key === 'id' || key === 'age') 
         {
             sql += `${key} = ${data[key]}`;
         } 
@@ -110,59 +118,73 @@ router.put(`/:id`, (req, res) => {
         {
             sql += `${key} = '${data[key]}'`;
         }
-        
-        sql += (count < numberOfKeys - 1) ? ', ' : '';
-        count++;
+
+        sql += (numberOfKeys > 1) ? ', ' : '';
+        numberOfKeys--;
     }
 
-    db.query(`UPDATE employer SET ${sql} WHERE id = ${id}`, (error, result, fields) => {
-        if (error) 
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'An error occurred while updating.' });
-        } 
+    const updateSql = `UPDATE employer SET ${sql} WHERE id = ?`;
+    const result = await handleDatabaseOperation(res, updateSql, values);
 
-            return res.status(200).json({ message: `Employer data updated successfully.` });
-    });
+    if (!result) 
+    {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+    return res.status(200).json({ message: `Employer data updated successfully.` });
 });
 
 /* ---------------------------- VERIFY AUTHENTICATION ---------------------------- */
 
 router.post(`/verify`, async (req, res) => {
-    const { email } = req.body;
-    const { password } = req.body;
+    const { email, password } = req.body;
 
-    db.query(`SELECT password FROM employer WHERE email = '${email}'`, async (error, result, fields) => {
-        if (error)
-        {
-            console.error(error);
-            res.status(500).json({ message: 'An error occurred while verifying authentication' }); 
-        }
-        
-        if (result.length === 0) 
-        {
-            return res.status(404).json({ message: 'Record not found' });
-        }
+    if (!email || !password) 
+    {
+        return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
+    }
 
-        const hashedPassword = result[0].password;
-        const isMatch = await bcrypt.compare(password, hashedPassword);
+    const sql = `SELECT password FROM employer WHERE email = ?`;
+    const values = [email];
 
-        res.status(200).json({ isMatch });
-    });
+    const result = await handleDatabaseOperation(res, sql, values);
+
+    if (!result) 
+    {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+    if (result.length === 0) 
+    {
+        return res.status(404).json({ message: 'Email address not found in records.' });
+    }
+
+    const hashedPassword = result[0].password;
+    const isMatch = await bcrypt.compare(password, hashedPassword);
+
+    if (isMatch) 
+    {
+        return res.status(200).json({ message: 'Authentication successful.' });
+    } 
+    else 
+    {
+        return res.status(401).json({ message: 'Authentication failed. Invalid password.' });
+    }
 });
 
-router.delete(`/:id`, (req, res) => {
+router.delete(`/:id`, async (req, res) => {
     const { id } = req.params;
+    const sql = 'DELETE FROM employer WHERE id = ?';
+    const values = [id];
 
-    db.query(`DELETE FROM employer WHERE id = ${id}`, (error, result, fields) => {
-        if (error) 
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'An error occurred while deleting.' });
-        }
+    const result = await handleDatabaseOperation(res, sql, values);
 
-        return res.status(200).json({ message: `id ${id} was succesfully deleted`});
-    });
+    if (!result) 
+    {
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+    return res.status(200).json({ message: `Employer with ID ${id} was successfully deleted` });
 });
 
 module.exports = router;

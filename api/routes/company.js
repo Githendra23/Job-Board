@@ -1,74 +1,85 @@
 const express = require('express');
-const db = require('../db');
 const bcrypt = require('bcryptjs');
+const db = require('../db');
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-    db.query(`SELECT * FROM company`, (error, result, fields) => {
-        if (error) 
+const handleDatabaseOperation = async (res, sql, values) => {
+    try 
+    {
+        const result = await db.query(sql, values);
+        return result;
+    } 
+    catch (error) 
+    {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+        return null;
+    }
+};
+
+router.get('/', async (req, res) => {
+    const sql = 'SELECT * FROM company';
+    const result = await handleDatabaseOperation(res, sql);
+    
+    if (result) 
+    {
+        const data = result.map(row => {
+            const { password, ...newRow } = row;
+            return newRow;
+        });
+
+        if (data.length === 0) 
         {
-            res.status(500).json({
-                message: "Couldn't get company table"
-            });
+            return res.status(404).json({ message: 'No companies found' });
+        }
+
+        return res.status(200).json(data);
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    const sql = 'SELECT * FROM company WHERE id = ?';
+    const values = [id];
+    const result = await handleDatabaseOperation(res, sql, values);
+
+    if (result) 
+    {
+        if (result.length === 0) 
+        {
+            return res.status(404).json({ message: 'Company not found' });
         }
 
         const data = result.map(row => {
-            // Create a new object without the 'password' key
             const { password, ...newRow } = row;
             return newRow;
         });
 
         return res.status(200).json(data);
-    });
-});
-
-router.get('/:id', (req, res, next) => {
-    const { id } = req.params;
-
-    db.query(`SELECT * FROM company WHERE id = ${id}`, (error, result, fields) => {
-        if (error) 
-        {
-            res.status(500).json({
-                message: "company doesn't exist"
-            });
-        }
-
-        const data = result.map(row => {
-            // Create a new object without the 'password' key
-            const { password, ...newRow } = row;
-            return newRow;
-        });
-
-        return res.status(200).json(data[0]);
-    }); 
+    }
 });
 
 router.post(`/`, async (req, res) => {
     const { name, email, password, telephone, description, country } = req.body;
 
-    if (!name || !description || !country || !telephone || !email || !password)
+    if (!name || !description || !country || !telephone || !email || !password) 
     {
-        return res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
+        return res.status(400).json({ message: 'Please provide all the required information for the new company.' });
     }
 
     let sql = `SELECT COUNT(*) AS emailCount FROM company WHERE email = ?`;
     let values = [email];
 
-    db.query(sql, values, (error, result, fields) => {
-        if (error) 
+    const emailCountResult = await handleDatabaseOperation(res, sql, values);
+
+    if (emailCountResult) 
+    {
+        const emailCount = emailCountResult[0].emailCount;
+        if (emailCount > 0) 
         {
-            console.log(error);
-            return res.status(500).json({ message: 'Error adding new company.'})
+            return res.status(409).json({ message: 'The provided email address is already in use.' });
         }
-        else 
-        {
-            const emailCount = result[0].emailCount;
-            if (emailCount > 0) 
-            {
-                return res.status(409).send({ message: `The email has been used.` });
-            } 
-        }
-    });
+    }
     
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -76,92 +87,90 @@ router.post(`/`, async (req, res) => {
     sql = `INSERT INTO company (name, description, country, telephone, email, password) VALUES (?, ?, ?, ?, ?, ?)`;
     values = [name, description, country, telephone, email, hashedPassword];
 
-    db.query(sql, values, (error, result, fields) => {
-        if (error)
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'An error occurred while hashing the password.' });
-        }
-        return res.status(200).json({ message: `Company data inserted successfully.` });
-    });
+    await handleDatabaseOperation(res, sql, values);
+    return res.status(200).json({ message: 'Company data inserted successfully.' });
 });
 
-router.put(`/:id`, (req, res) => {
+router.put(`/:id`, async (req, res) => {
     const { id } = req.params;
     const { data } = req.body;
 
     if (!data) 
     {
-        return res.status(400).json({ message: 'You need to provide data to update the database!' });
-    } 
+        return res.status(400).json({ message: 'Please provide data to update the database.' });
+    }
 
     const numberOfKeys = Object.keys(data).length;
     let sql = '';
+    let values = [id];
 
-    let count = 0;
     for (const key in data) 
     {
-        if (key === 'id' || key === 'telephone')
-        {
+        if (key === 'id' || key === 'telephone') {
             sql += `${key} = ${data[key]}`;
         } 
         else 
         {
             sql += `${key} = '${data[key]}'`;
         }
-        
-        sql += (count < numberOfKeys - 1) ? ', ' : '';
-        count++;
+
+        sql += (numberOfKeys > 1) ? ', ' : '';
+        numberOfKeys--;
     }
 
-    db.query(`UPDATE company SET ${sql} WHERE id = ${id}`, (error, result, fields) => {
-        if (error) 
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'An error occurred while updating.' });
-        } 
+    const updateSql = `UPDATE company SET ${sql} WHERE id = ?`;
+    const result = await handleDatabaseOperation(res, updateSql, values);
 
-            return res.status(200).json({ message: `Company data updated successfully.` });
-    });
+    if (result) 
+    {
+        return res.status(200).json({ message: `Company data updated successfully.` });
+    }
 });
 
 /* ---------------------------- VERIFY AUTHENTICATION ---------------------------- */
 
 router.post(`/verify`, async (req, res) => {
-    const { email } = req.body;
-    const { password } = req.body;
+    const { email, password } = req.body;
 
-    db.query(`SELECT password FROM company WHERE email = '${email}'`, async (error, result, fields) => {
-        if (error)
-        {
-            console.error(error);
-            res.status(500).json({ message: 'An error occurred while verifying authentication' }); 
-        }
-        
-        if (result.length === 0) 
-        {
-            return res.status(404).json({ message: 'Record not found' });
-        }
+    if (!email || !password) 
+    {
+        return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
+    }
 
-        const hashedPassword = result[0].password;
-        const isMatch = await bcrypt.compare(password, hashedPassword);
+    const sql = `SELECT password FROM company WHERE email = ?`;
+    const values = [email];
 
-        res.status(200).json({ isMatch });
-    });
+    const result = await handleDatabaseOperation(res, sql, values);
+
+    if (result.length === 0) 
+    {
+        return res.status(404).json({ message: 'Email address not found in records.' });
+    }
+
+    const hashedPassword = result[0].password;
+    const isMatch = await bcrypt.compare(password, hashedPassword);
+
+    if (isMatch) 
+    {
+        return res.status(200).json({ message: 'Authentication successful.' });
+    } 
+    else 
+    {
+        return res.status(401).json({ message: 'Authentication failed. Invalid password.' });
+    }
 });
 
-router.delete(`/:id`, (req, res) => {
+router.delete(`/:id`, async (req, res) => {
     const { id } = req.params;
+    const sql = 'DELETE FROM company WHERE id = ?';
+    const values = [id];
 
-    db.query(`DELETE FROM company WHERE id = ${id}`, (error, result, fields) => {
-        if (error) 
-        {
-            console.log(error);
-            return res.status(500).json({ message: 'An error occurred while deleting.' });
-        }
+    const result = await handleDatabaseOperation(res, sql, values);
 
-        return res.status(200).json({ message: `id ${id} was succesfully deleted`});
-    });
+    if (result) 
+    {
+        return res.status(200).json({ message: `Company with ID ${id} was successfully deleted` });
+    }
 });
 
 module.exports = router;

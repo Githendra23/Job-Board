@@ -3,7 +3,7 @@ $email = $_POST["email"];
 $password = $_POST["password"];
 $role = $_POST["role"];
 
-$apiUrl = "http://localhost:8080/api/work_trailer/$role/verify";
+$apiUrl = "http://localhost:8080/$role/verify";
 
 $data = [
     "email" => $email,
