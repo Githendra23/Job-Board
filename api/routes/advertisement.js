@@ -1,20 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
-
-const handleDatabaseOperation = async (res, sql, values) => {
-    try 
-    {
-        const result = await db.query(sql, values);
-        return result;
-    } 
-    catch (error) 
-    {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-        return null;
-    }
-};
+const handleDB = require('../db_operation');
 
 const handleNotFoundError = (res) => {
     res.status(404).json({ message: 'Resource not found' });
@@ -22,7 +8,7 @@ const handleNotFoundError = (res) => {
 
 router.get('/', async (req, res) => {
     const sql = 'SELECT * FROM advertisement';
-    const result = await handleDatabaseOperation(res, sql);
+    const result = await handleDB.asyncOperation(res, sql);
 
     if (result) 
     {
@@ -39,7 +25,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const sql = 'SELECT * FROM advertisement WHERE id = ?';
     const values = [id];
-    const result = await handleDatabaseOperation(res, sql, values);
+    const result = await handleDB.asyncOperation(res, sql, values);
 
     if (result) 
     {
@@ -58,7 +44,7 @@ router.post('/', async (req, res) => {
     const sql = `INSERT INTO advertisement (title, description, address, employment_contact_type, country, wage, tag, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     const values = [title, description, address, employment_contact_type, country, wage, tag, company_id];
 
-    if (await handleDatabaseOperation(res, sql, values)) 
+    if (await handleDB.asyncOperation(res, sql, values)) 
     {
         return res.status(200).json({ message: 'Advertisement data inserted successfully.' });
     }
@@ -88,7 +74,7 @@ router.put('/:id', async (req, res) => {
     sql += `WHERE id = ?`;
     values.push(id);
 
-    if (await handleDatabaseOperation(res, sql, values)) 
+    if (await handleDB.asyncOperation(res, sql, values)) 
     {
         return res.status(200).json({ message: 'Advertisement data updated successfully.' });
     }
@@ -99,7 +85,7 @@ router.delete('/:id', async (req, res) => {
     const sql = 'DELETE FROM advertisement WHERE id = ?';
     const values = [id];
 
-    if (await handleDatabaseOperation(res, sql, values)) 
+    if (await handleDB.asyncOperation(res, sql, values)) 
     {
         return res.status(200).json({ message: `Advertisement with ID ${id} was successfully deleted` });
     }

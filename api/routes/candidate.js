@@ -1,25 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+const handleDB = require('../db_operation');
 const router = express.Router();
-
-const handleDatabaseOperation = async (res, sql, values) => {
-    try 
-    {
-        const result = await db.query(sql, values);
-        return result;
-    } 
-    catch (error) 
-    {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-        return null;
-    }
-};
 
 router.get('/', async (req, res) => {
     const sql = 'SELECT * FROM candidate';
-    const result = await handleDatabaseOperation(res, sql);
+    const result = await handleDB.asyncOperation(res, sql);
     
     if (result) 
     {
@@ -30,7 +16,7 @@ router.get('/', async (req, res) => {
 
         if (data.length === 0) 
         {
-            return res.status(404).json({ message: 'No candidates found' });
+            return res.status(404).json({ message: 'Resource not found' });
         }
 
         return res.status(200).json(data);
@@ -41,7 +27,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const sql = 'SELECT * FROM candidate WHERE id = ?';
     const values = [id];
-    const result = await handleDatabaseOperation(res, sql, values);
+    const result = await handleDB.asyncOperation(res, sql, values);
 
     if (result) 
     {
@@ -71,7 +57,7 @@ router.post(`/`, async (req, res) => {
     {
         let sql = `SELECT COUNT(*) AS emailCount FROM candidate WHERE email = ?`;
         let values = [email];
-        const emailCountResult = await handleDatabaseOperation(res, sql, values);
+        const emailCountResult = await handleDB.asyncOperation(res, sql, values);
 
         if (emailCountResult) 
         {
@@ -88,7 +74,7 @@ router.post(`/`, async (req, res) => {
         sql = `INSERT INTO candidate (name, surname, age, address, country, telephone, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
         values = [name, surname, age, address, country, telephone, email, hashedPassword];
 
-        await handleDatabaseOperation(res, sql, values);
+        await handleDB.asyncOperation(res, sql, values);
         return res.status(200).json({ message: 'Candidate data inserted successfully.' });
     } catch (error) 
     {
@@ -126,7 +112,7 @@ router.put(`/:id`, async (req, res) => {
     }
 
     const updateSql = `UPDATE candidate SET ${sql} WHERE id = ?`;
-    const result = await handleDatabaseOperation(res, updateSql, values);
+    const result = await handleDB.asyncOperation(res, updateSql, values);
 
     if (result) 
     {
@@ -147,7 +133,7 @@ router.post(`/verify`, async (req, res) => {
     const sql = `SELECT password FROM candidate WHERE email = ?`;
     const values = [email];
 
-    const result = await handleDatabaseOperation(res, sql, values);
+    const result = await handleDB.asyncOperation(res, sql, values);
 
     if (result.length === 0) 
     {
@@ -172,7 +158,7 @@ router.delete(`/:id`, async (req, res) => {
     const sql = 'DELETE FROM candidate WHERE id = ?';
     const values = [id];
 
-    const result = await handleDatabaseOperation(res, sql, values);
+    const result = await handleDB.asyncOperation(res, sql, values);
 
     if (result) 
     {
