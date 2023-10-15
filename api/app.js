@@ -12,7 +12,7 @@ const candidateRoutes = require('./routes/candidate');
 const companyRoutes = require('./routes/company');
 const employerRoutes = require('./routes/employer');
 const advertisementRoutes = require('./routes/advertisement');
-const jobApplicationRoutes = require('./routes/job_application');
+const jobApplicationRoutes = require('./routes/jobApplication');
 
 app.use('/candidate', candidateRoutes);
 app.use('/company', companyRoutes);
