@@ -77,7 +77,7 @@ router.delete('/:id', async (req, res) => {
       await JobApplication.destroy();
       return res.status(200).json({ message: 'JobApplication deleted successfully' });
     } 
-    else 
+    else
     {
       return res.status(404).json({ message: 'JobApplication not found' });
     }

@@ -40,8 +40,21 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const newEmployer = await Employer.create(req.body);
-    return res.status(200).json(newEmployer);
+    const { email, password, ...otherData } = req.body;
+
+    const existingEmployer = await Employer.findOne({ where: { email } });
+
+    if (existingEmployer) 
+    {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const employer = Employer.build({ email, ...otherData });
+    employer.password = await employer.hashPassword(password);
+
+    await employer.save();
+
+    return res.status(200).json(employer);
   } 
   catch (error) 
   {
@@ -61,6 +74,25 @@ router.put('/:id', async (req, res) => {
   try
   {
     const employer = await Employer.findByPk(id);
+
+    if (req.body.hasOwnProperty('password'))
+    {
+      const { password, ...otherData } = req.body;
+
+      req.body.password = await employer.hashPassword(password);
+    }
+
+    if (req.body.hasOwnProperty('email'))
+    {
+      const { email, password, ...otherData } = req.body;
+
+      const existingEmployer = await Employer.findOne({ where: { email } });
+
+      if (existingEmployer)
+      {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
 
     if (employer)
     {

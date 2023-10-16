@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
 
     return res.status(200).json(company);
   } 
-  catch (error) 
+  catch (error)
   {
     console.error(error);
     return res.status(400).json({ message: 'Bad Request' });
