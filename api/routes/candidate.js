@@ -20,7 +20,7 @@ router.get('/:id', async (req, res) => {
   
   try 
   {
-    const candidate = await Candidate.findByPk(parseInt(id));
+    const candidate = await Candidate.findByPk(id);
     if (candidate) 
     {
       return res.status(200).json(candidate);
@@ -40,12 +40,21 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const { password, ...otherData } = req.body;
-    const hashedPassword = await Candidate.hashPassword(password);
-    req.body.password = hashedPassword;
+    const { email, password, ...otherData } = req.body;
 
-    const newCandidate = await Candidate.create(req.body);
-    return res.status(200).json(newCandidate);
+    const existingCandidate = await Candidate.findOne({ where: { email } });
+
+    if (existingCandidate) 
+    {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const candidate = Candidate.build({ email, ...otherData });
+    candidate.password = await candidate.hashPassword(password);
+
+    await candidate.save();
+
+    return res.status(200).json(candidate);
   } 
   catch (error) 
   {
@@ -65,6 +74,25 @@ router.put('/:id', async (req, res) => {
   try
   {
     const candidate = await Candidate.findByPk(id);
+
+    if (req.body.hasOwnProperty('password'))
+    {
+      const { password, ...otherData } = req.body;
+
+      req.body.password = await candidate.hashPassword(password);
+    }
+
+    if (req.body.hasOwnProperty('email'))
+    {
+      const { email, password, ...otherData } = req.body;
+
+      const existingCandidate = await Candidate.findOne({ where: { email } });
+
+      if (existingCandidate)
+      {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
 
     if (candidate)
     {
