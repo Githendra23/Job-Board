@@ -40,8 +40,21 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const newCompany = await Company.create(req.body);
-    return res.status(200).json(newCompany);
+    const { email, password, ...otherData } = req.body;
+
+    const existingCompany = await Company.findOne({ where: { email } });
+
+    if (existingCompany) 
+    {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const company = Company.build({ email, ...otherData });
+    company.password = await company.hashPassword(password);
+
+    await company.save();
+
+    return res.status(200).json(company);
   } 
   catch (error) 
   {
@@ -61,6 +74,25 @@ router.put('/:id', async (req, res) => {
   try
   {
     const company = await Company.findByPk(id);
+
+    if (req.body.hasOwnProperty('password'))
+    {
+      const { password, ...otherData } = req.body;
+
+      req.body.password = await company.hashPassword(password);
+    }
+
+    if (req.body.hasOwnProperty('email'))
+    {
+      const { email, password, ...otherData } = req.body;
+
+      const existingCompany = await Company.findOne({ where: { email } });
+
+      if (existingCompany)
+      {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
 
     if (company)
     {

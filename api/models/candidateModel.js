@@ -66,7 +66,7 @@ Candidate.prototype.hashPassword = async function (password)
   catch (error)
   {
     console.log(error);
-};
-  }
+  };
+}
 
 module.exports = Candidate;
