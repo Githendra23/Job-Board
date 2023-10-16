@@ -1,86 +1,61 @@
-const handleDB = require('../db_operation');
+const { DataTypes, Sequelize } = require('sequelize');
+const sequelize = require('../db/sequelize');
 
-class Advertisement 
-{
-    static async getAll() 
-    {
-        const sql = 'SELECT * FROM advertisement';
-        const result = await handleDB.asyncOperation(sql);
-
-        if (result) 
-        {
-            const data = result.map(row => {
-                const { password, ...newRow } = row;
-                return newRow;
-            });
-
-            return data.length === 0 ? null : data;
-        }
-
-        return null;
-    }
-
-    static async getById(id) 
-    {
-        const sql = 'SELECT * FROM advertisement WHERE id = ?';
-        const values = [id];
-        const result = await handleDB.asyncOperation(sql, values);
-
-        if (result) 
-        {
-            return result.length === 0 ? null : result[0];
-        }
-
-        return null;
-    }
-
-    static async create(advertisementData) 
-    {
-        const { title, description, address, employment_contact_type, country, wage, tag, company_id } = advertisementData;
-
-        if (!title || !description || !address || !employment_contact_type || !country || !wage || !company_id) 
-        {
-            return null;
-        }
-
-        const sql = `INSERT INTO advertisement (title, description, address, employment_contact_type, country, wage, tag, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-        const values = [title, description, address, employment_contact_type, country, wage, tag, company_id];
-
-        return handleDB.asyncOperation(sql, values);
-    }
-
-    static async update(id, data) 
-    {
-        if (!data) 
-        {
-            return null;
-        }
-
-        const numberOfKeys = Object.keys(data).length;
-        let sql = `UPDATE advertisement SET `;
-        let values = [];
-
-        for (const key in data) 
-        {
-            sql += `${key} = ?`;
-            values.push(data[key]);
-            sql += numberOfKeys > 1 ? ', ' : ' ';
-            numberOfKeys--;
-        }
-
-        sql += `WHERE id = ?`;
-        values.push(id);
-
-        return handleDB.asyncOperation(sql, values);
-    }
-
-    static async delete(id) 
-    {
-        const sql = 'DELETE FROM advertisement WHERE id = ?';
-        const values = [id];
-
-        return handleDB.asyncOperation(sql, values);
-    }
-}
+const Advertisement = sequelize.define('Advertisement', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  address: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  employmentContractType: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  wage: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+  },
+  tag: DataTypes.STRING,
+  company_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'Company',
+      key: 'id',
+      name: 'company_id'
+    },
+  },
+  employer_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'Employer',
+      key: 'id',
+      name: 'employer_id'
+    },
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    allowNull: false,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    allowNull: false,
+  },
+}, {
+  tableName: 'advertisement',
+});
 
 module.exports = Advertisement;

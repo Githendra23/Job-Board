@@ -1,91 +1,67 @@
 const express = require('express');
 const JobApplication = require('../models/jobApplicationModel');
-
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   try 
   {
-    const jobApplications = await JobApplication.getAll();
-
-    if (jobApplications) 
-    {
-      return res.status(200).json(jobApplications);
-    } 
-    else 
-    {
-      return res.status(404).json({ message: 'Resource not found' });
-    }
+    const jobApplication = await JobApplication.findAll();
+    return res.status(200).json(jobApplication);
   } 
-  catch (error) 
+  catch (error)
   {
+    console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-
+  
   try 
   {
-    const jobApplication = await JobApplication.getById(id);
-
+    const jobApplication = await JobApplication.findByPk(parseInt(id));
     if (jobApplication) 
     {
       return res.status(200).json(jobApplication);
     } 
     else 
     {
-      return res.status(404).json({ message: 'Resource not found' });
+      return res.status(404).json({ message: 'JobApplication not found' });
     }
   } 
   catch (error) 
   {
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-router.post('/', async (req, res) => {
-  const jobApplicationData = req.body;
-
-  try 
-  {
-    const result = await JobApplication.create(jobApplicationData);
-
-    if (result) 
-    {
-      return res.status(200).json({ message: 'Job application data inserted successfully.' });
-    } 
-    else 
-    {
-      return res.status(400).json({ message: 'You need to provide all the information of the new candidate!' });
-    }
-  } 
-  catch (error) 
-  {
+    console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const data = req.body;
 
-  try 
+  if (!req.body) 
   {
-    const result = await JobApplication.update(id, data);
+    return res.status(400).json({ message: 'Please provide data to update the database.' });
+  }
 
-    if (result) 
+  try
+  {
+    const jobApplication = await JobApplication.findByPk(id);
+
+    if (jobApplication)
     {
-      return res.status(200).json({ message: 'Job application data updated successfully.' });
-    } 
+      await JobApplication.update(req.body);
+      return res.status(200).json(jobApplication);
+    }
     else 
     {
-      return res.status(400).json({ message: 'You need to provide data to update the database!' });
+      return res.status(404).json({ message: 'JobApplication not found' });
     }
   } 
   catch (error) 
   {
+    console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
@@ -95,19 +71,20 @@ router.delete('/:id', async (req, res) => {
 
   try 
   {
-    const result = await JobApplication.delete(id);
-    if 
-    (result) 
+    const jobApplication = await JobApplication.findByPk(id);
+    if (jobApplication) 
     {
-      return res.status(200).json({ message: `ID ${id} was successfully deleted` });
+      await JobApplication.destroy();
+      return res.status(200).json({ message: 'JobApplication deleted successfully' });
     } 
     else 
     {
-      return res.status(404).json({ message: 'Resource not found' });
+      return res.status(404).json({ message: 'JobApplication not found' });
     }
   } 
   catch (error) 
   {
+    console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });

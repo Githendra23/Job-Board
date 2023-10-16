@@ -1,67 +1,108 @@
 const express = require('express');
-const router = express.Router();
 const Employer = require('../models/employerModel');
+const router = express.Router();
 
 router.get('/', async (req, res) => {
   try 
   {
-    const employers = await Employer.findAll();
-    return res.status(200).json(employers);
+    const employer = await Employer.findAll();
+    return res.status(200).json(employer);
   } 
   catch (error) 
   {
-    return res.status(404).json({ message: 'No employers found' });
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-
-  try 
+  
+  try
   {
-    const employer = await Employer.findById(id);
-    return res.status(200).json(employer);
+    const employer = await Employer.findByPk(parseInt(id));
+    if (employer) 
+    {
+      return res.status(200).json(employer);
+    } 
+    else 
+    {
+      return res.status(404).json({ message: 'Employer not found' });
+    }
   } 
   catch (error) 
   {
-    return res.status(404).json(error);
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/register', async (req, res) => {
   try 
   {
-    const newEmployer = new Employer(req.body);
-    const result = await newEmployer.save();
-    return res.status(200).json(result);
+    const newEmployer = await Employer.create(req.body);
+    return res.status(200).json(newEmployer);
   } 
   catch (error) 
   {
-    return res.status(400).json(error);
+    console.error(error);
+    return res.status(400).json({ message: 'Bad Request' });
   }
 });
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { data } = req.body;
 
-  if (!data) 
+  if (!req.body) 
   {
     return res.status(400).json({ message: 'Please provide data to update the database.' });
   }
 
-  try 
+  try
   {
-    const result = await Employer.update(id, data);
-    return res.status(200).json(result);
+    const employer = await Employer.findByPk(id);
+
+    if (employer)
+    {
+      await Employer.update(req.body);
+      return res.status(200).json(employer);
+    }
+    else 
+    {
+      return res.status(404).json({ message: 'Employer not found' });
+    }
   } 
   catch (error) 
   {
-    return res.status(400).json(error);
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-router.post('/verify', async (req, res) => {
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try 
+  {
+    const employer = await Employer.findByPk(id);
+    if (employer) 
+    {
+      await employer.destroy();
+      return res.status(200).json({ message: 'Employer deleted successfully' });
+    } 
+    else 
+    {
+      return res.status(404).json({ message: 'Employer not found' });
+    }
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) 
@@ -71,33 +112,22 @@ router.post('/verify', async (req, res) => {
 
   try 
   {
-    const isMatch = await Employer.authenticate(email, password);
-    if (isMatch) 
+    const employer = await Employer.findOne({ where: { email } });
+    if (employer)
     {
-      return res.status(200).json({ message: 'Authentication successful.' });
-    } 
-    else 
-    {
-      return res.status(401).json({ message: 'Authentication failed. Invalid password.' });
+      const isMatch = await Employer.comparePassword(password);
+
+      if (isMatch) 
+      {
+        return res.status(200).json({ message: 'Authentication successful' });
+      }
     }
+    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
   } 
   catch (error) 
   {
-    return res.status(404).json({ message: 'Email address not found in records.' });
-  }
-});
-
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try 
-  {
-    const result = await Employer.remove(id);
-    return res.status(200).json(result);
-  } 
-  catch (error) 
-  {
-    return res.status(404).json(error);
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 

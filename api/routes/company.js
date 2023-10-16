@@ -1,67 +1,108 @@
 const express = require('express');
-const router = express.Router();
 const Company = require('../models/companyModel');
+const router = express.Router();
 
 router.get('/', async (req, res) => {
   try 
   {
-    const companies = await Company.findAll();
-    return res.status(200).json(companies);
+    const company = await Company.findAll();
+    return res.status(200).json(company);
   } 
   catch (error) 
   {
-    return res.status(404).json({ message: 'No companies found' });
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-
+  
   try 
   {
-    const company = await Company.findById(id);
-    return res.status(200).json(company);
+    const company = await Company.findByPk(parseInt(id));
+    if (company) 
+    {
+      return res.status(200).json(company);
+    } 
+    else 
+    {
+      return res.status(404).json({ message: 'company not found' });
+    }
   } 
   catch (error) 
   {
-    return res.status(404).json(error);
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/register', async (req, res) => {
   try 
   {
-    const newCompany = new Company(req.body);
-    const result = await newCompany.save();
-    return res.status(200).json(result);
+    const newCompany = await Company.create(req.body);
+    return res.status(200).json(newCompany);
   } 
   catch (error) 
   {
-    return res.status(400).json(error);
+    console.error(error);
+    return res.status(400).json({ message: 'Bad Request' });
   }
 });
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { data } = req.body;
 
-  if (!data) 
+  if (!req.body) 
   {
     return res.status(400).json({ message: 'Please provide data to update the database.' });
   }
 
-  try 
+  try
   {
-    const result = await Company.update(id, data);
-    return res.status(200).json(result);
+    const company = await Company.findByPk(id);
+
+    if (company)
+    {
+      await Company.update(req.body);
+      return res.status(200).json(company);
+    }
+    else 
+    {
+      return res.status(404).json({ message: 'Company not found' });
+    }
   } 
   catch (error) 
   {
-    return res.status(400).json(error);
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-router.post('/verify', async (req, res) => {
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try 
+  {
+    const company = await Company.findByPk(id);
+    if (company) 
+    {
+      await Company.destroy();
+      return res.status(200).json({ message: 'Company deleted successfully' });
+    } 
+    else 
+    {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) 
@@ -71,33 +112,22 @@ router.post('/verify', async (req, res) => {
 
   try 
   {
-    const isMatch = await Company.authenticate(email, password);
-    if (isMatch) 
+    const company = await Company.findOne({ where: { email } });
+    if (company)
     {
-      return res.status(200).json({ message: 'Authentication successful.' });
-    } 
-    else 
-    {
-      return res.status(401).json({ message: 'Authentication failed. Invalid password.' });
+      const isMatch = await Company.comparePassword(password);
+
+      if (isMatch) 
+      {
+        return res.status(200).json({ message: 'Authentication successful' });
+      }
     }
+    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
   } 
   catch (error) 
   {
-    return res.status(404).json({ message: 'Email address not found in records.' });
-  }
-});
-
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try 
-  {
-    const result = await Company.remove(id);
-    return res.status(200).json(result);
-  } 
-  catch (error) 
-  {
-    return res.status(404).json(error);
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 

@@ -1,89 +1,92 @@
 const express = require('express');
-const router = express.Router();
 const Advertisement = require('../models/advertisementModel');
+const router = express.Router();
 
 router.get('/', async (req, res) => {
-    const advertisements = await Advertisement.getAll();
-
-    if (advertisements) 
-    {
-        res.status(200).json(advertisements);
-    } 
-    else 
-    {
-        res.status(404).json({ message: 'Resource not found' });
-    }
+  try 
+  {
+    const advertisement = await Advertisement.findAll();
+    return res.status(200).json(advertisement);
+  } 
+  catch (error)
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 });
 
 router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-    const advertisement = await Advertisement.getById(id);
-
+  const { id } = req.params;
+  
+  try 
+  {
+    const advertisement = await Advertisement.findByPk(parseInt(id));
     if (advertisement) 
     {
-        res.status(200).json(advertisement);
+      return res.status(200).json(advertisement);
     } 
     else 
     {
-        res.status(404).json({ message: 'Resource not found' });
+      return res.status(404).json({ message: 'Advertisement not found' });
     }
-});
-
-router.post('/', async (req, res) => 
-{
-    const { title, description, address, employment_contact_type, country, wage, tag, company_id } = req.body;
-    const advertisementData = 
-    {
-        title,
-        description,
-        address,
-        employment_contact_type,
-        country,
-        wage,
-        tag,
-        company_id,
-    };
-
-    const result = await Advertisement.create(advertisementData);
-
-    if (result) 
-    {
-        res.status(200).json({ message: 'Advertisement data inserted successfully.' });
-    } 
-    else 
-    {
-        res.status(400).json({ message: 'You need to provide all the required information for the new advertisement.' });
-    }
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 });
 
 router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { data } = req.body;
+  const { id } = req.params;
 
-    const result = await Advertisement.update(id, data);
+  if (!req.body) 
+  {
+    return res.status(400).json({ message: 'Please provide data to update the database.' });
+  }
 
-    if (result) 
+  try
+  {
+    const advertisement = await Advertisement.findByPk(id);
+
+    if (advertisement)
     {
-        res.status(200).json({ message: 'Advertisement data updated successfully.' });
-    } 
+      await Advertisement.update(req.body);
+      return res.status(200).json(advertisement);
+    }
     else 
     {
-        res.status(400).json({ message: 'You need to provide data to update the database.' });
+      return res.status(404).json({ message: 'Advertisement not found' });
     }
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 });
 
 router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-    const result = await Advertisement.delete(id);
+  const { id } = req.params;
 
-    if (result) 
+  try 
+  {
+    const advertisement = await Advertisement.findByPk(id);
+    if (advertisement) 
     {
-        res.status(200).json({ message: `Advertisement with ID ${id} was successfully deleted` });
+      await Advertisement.destroy();
+      return res.status(200).json({ message: 'Advertisement deleted successfully' });
     } 
     else 
     {
-        res.status(404).json({ message: 'Resource not found' });
+      return res.status(404).json({ message: 'Advertisement not found' });
     }
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 });
 
 module.exports = router;
