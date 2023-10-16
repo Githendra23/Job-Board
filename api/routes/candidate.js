@@ -5,10 +5,13 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try 
   {
-    const candidate = await Candidate.findAll();
-    return res.status(200).json(candidate);
+    const candidates = await Candidate.findAll({
+      attributes: { exclude: ['password'] },
+    });
+
+    return res.status(200).json(candidates);
   } 
-  catch (error)
+  catch (error) 
   {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
@@ -17,17 +20,20 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  
+
   try 
   {
-    const candidate = await Candidate.findByPk(id);
+    const candidate = await Candidate.findByPk(id, {
+      attributes: { exclude: ['password'] },
+    });
+
     if (candidate) 
     {
       return res.status(200).json(candidate);
     } 
     else 
     {
-      return res.status(404).json({ message: 'Candidate not found' });
+      return res.status(404).json({ message: 'Company not found' });
     }
   } 
   catch (error) 

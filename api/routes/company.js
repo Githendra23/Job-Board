@@ -5,8 +5,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try 
   {
-    const company = await Company.findAll();
-    return res.status(200).json(company);
+    const companies = await Company.findAll({
+      attributes: { exclude: ['password'] },
+    });
+
+    return res.status(200).json(companies);
   } 
   catch (error) 
   {
@@ -17,17 +20,20 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  
+
   try 
   {
-    const company = await Company.findByPk(parseInt(id));
+    const company = await Company.findByPk(id, {
+      attributes: { exclude: ['password'] },
+    });
+
     if (company) 
     {
       return res.status(200).json(company);
     } 
     else 
     {
-      return res.status(404).json({ message: 'company not found' });
+      return res.status(404).json({ message: 'Company not found' });
     }
   } 
   catch (error) 
