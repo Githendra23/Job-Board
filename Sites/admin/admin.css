@@ -68,3 +68,10 @@ body table, body .table{
     --bs-table-color: #fff;
     border:solid 1px yellow;
 }
+
+.specialInput{
+    bottom:0;
+    margin-bottom: 5px;
+    max-width: 100%;
+    position: fixed;
+}

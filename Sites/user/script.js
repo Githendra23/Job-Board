@@ -109,7 +109,8 @@ var bg = document.getElementById("background");
             <input type="text" id="name " placeholder="First Name">
             <input type="text" id="surname" placeholder="Last Name"><br>
             <input type="email" id="email" placeholder="E-mail">
-            <input type="tel" id="phone" placeholder="Phone number">
+            <input type="tel" id="phone" placeholder="Phone number"><br><br>
+            <textarea id="msg"></textarea>
             <input type="submit">
         </form>`
 
