@@ -68,7 +68,7 @@ setInterval(function ()
     {
         if (current_tab!="")
         {loadtable(current_tab)}
-    },1000000)
+    },4000)
 
 // var colordir=false
 // let color=0
