@@ -12,7 +12,7 @@ var bg = document.getElementById("background");
 // </div>`
 
 
-    fetch("http://localhost:8080/api/work_trailer/advertisement")
+    fetch("http://localhost:8080/advertisement")
     .then(function(response){
 
         if (response.ok) {
@@ -79,7 +79,7 @@ var bg = document.getElementById("background");
 
 
     function learn(num){
-        fetch("http://localhost:8080/api/work_trailer/advertisement")
+        fetch("http://localhost:8080/advertisement")
     .then(function(response){
 
         if (response.ok) {
