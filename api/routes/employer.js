@@ -50,7 +50,7 @@ router.post('/register', async (req, res) => {
 
     const existingEmployer = await Employer.findOne({ where: { email } });
 
-    if (existingEmployer) 
+    if (existingEmployer)
     {
       return res.status(400).json({ message: 'Email already exists' });
     }
@@ -60,9 +60,12 @@ router.post('/register', async (req, res) => {
 
     await employer.save();
 
-    return res.status(200).json(employer);
+    // Generate a token using the user's ID and email
+    const token = employer.generateToken();
+
+    return res.status(200).json(employer, token);
   } 
-  catch (error) 
+  catch (error)
   {
     console.error(error);
     return res.status(400).json({ message: 'Bad Request' });
@@ -157,7 +160,8 @@ router.post('/login', async (req, res) => {
 
       if (isMatch) 
       {
-        return res.status(200).json({ message: 'Authentication successful' });
+        const token = employer.generateToken();
+        return res.status(200).json({ message: 'Authentication successful', token });
       }
     }
     return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });

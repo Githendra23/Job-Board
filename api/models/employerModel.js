@@ -69,7 +69,25 @@ Employer.prototype.hashPassword = async function (password)
   catch (error)
   {
     console.log(error);
-  };
-}
+  }
+};
+
+Employer.prototype.generateToken = function () {
+  try 
+  {
+    const token = jwt.sign(
+      { userId: this.id, email: this.email },
+      secretKey,
+      { expiresIn: '1h' }
+    );
+
+    return token;
+  } 
+  catch (err) 
+  {
+    console.error(err);
+    return null;
+  }
+};
 
 module.exports = Employer;

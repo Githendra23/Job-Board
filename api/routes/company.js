@@ -58,9 +58,12 @@ router.post('/register', async (req, res) => {
     const company = Company.build({ email, ...otherData });
     company.password = await company.hashPassword(password);
 
+    // Generate a token using the user's ID and email
+    const token = company.generateToken();
+
     await company.save();
 
-    return res.status(200).json(company);
+    return res.status(200).json(company, token);
   } 
   catch (error)
   {
@@ -157,7 +160,8 @@ router.post('/login', async (req, res) => {
 
       if (isMatch) 
       {
-        return res.status(200).json({ message: 'Authentication successful' });
+        const token = candidate.generateToken();
+        return res.status(200).json({ message: 'Authentication successful', token });
       }
     }
     return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });

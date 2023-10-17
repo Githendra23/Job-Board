@@ -61,11 +61,9 @@ router.post('/register', async (req, res) => {
     // Generate a token using the user's ID and email
     const token = candidate.generateToken();
 
-    candidate.token = token;
-
     await candidate.save();
 
-    return res.status(200).json(candidate);
+    return res.status(200).json(candidate, token);
   } 
   catch (error) 
   {
