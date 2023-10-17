@@ -164,7 +164,7 @@ function loadtable(tabledb)
 function deletedb(table, num)
 {
     //console.log("delete: "+table+num)
-    fetch(`http://localhost:8080/api/work_trailer/${table}/delete/${num}`,{method:"DELETE"})
+    fetch(`http://localhost:8080/${table}/${num}`,{method:"DELETE"})
     loadtable(current_tab)
 }
 
@@ -268,6 +268,7 @@ function addDb(table)
 
 function edit(id)
 {
+    inputAmt=0
     spInput.innerHTML=""
         for (let i=0; i<Object.keys(inputs).length;i++)
         {
@@ -288,25 +289,26 @@ function edit(id)
 
 function editDb()
 {
+
     senData=""
     table=JSON.stringify(table)
     senData+='{'
     console.log(inputAmt)
     for(let i=1;i<inputAmt;i++)
     {
-        
-        var inputVal=document.getElementsByClassName("toSend")[i]
-        var nextInput=document.getElementsByClassName("toSend")[i+1]
+        console.log(inputAmt)
+        let inputVal=document.getElementsByClassName("toSend")[i]
+        let nextInput=document.getElementsByClassName("toSend")[i+1]
         if (inputVal.value !=="")
         {
         if (inputVal.id !=="telephone")
         senData+='"'+inputVal.id+'"'+" : "+'"'+inputVal.value+'"'
-    else
-    senData+='"'+inputVal.id+'"'+" : "+inputVal.value
+        else
+        senData+='"'+inputVal.id+'"'+" : "+inputVal.value
     
 
-    if (nextInput.value !=="" && nextInput.id!=="createdAt" && nextInput.id!=="updatedAt")
-    senData+=',\n'}
+        if (nextInput.value !=="" && nextInput.id!=="createdAt" && nextInput.id!=="updatedAt")
+        senData+=',\n'}
     }
     senData+='}'
     console.log(senData)
