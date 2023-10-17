@@ -58,6 +58,11 @@ router.post('/register', async (req, res) => {
     const candidate = Candidate.build({ email, ...otherData });
     candidate.password = await candidate.hashPassword(password);
 
+    // Generate a token using the user's ID and email
+    const token = candidate.generateToken();
+
+    candidate.token = token;
+
     await candidate.save();
 
     return res.status(200).json(candidate);
@@ -65,7 +70,7 @@ router.post('/register', async (req, res) => {
   catch (error) 
   {
     console.error(error);
-    return res.status(400).json({ message: 'Bad Request' });
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -148,18 +153,21 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
   }
 
-  try 
+  try
   {
     const candidate = await Candidate.findOne({ where: { email } });
-    if (candidate)
+
+    if (candidate) 
     {
       const isMatch = await candidate.comparePassword(password);
 
       if (isMatch) 
       {
-        return res.status(200).json({ message: 'Authentication successful' });
+        const token = candidate.generateToken();
+        return res.status(200).json({ message: 'Authentication successful', token });
       }
     }
+
     return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
   } 
   catch (error) 

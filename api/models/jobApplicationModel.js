@@ -12,7 +12,7 @@ const JobApplication = sequelize.define('JobApplication', {
   candidate_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Candidate', // Assuming 'Candidate' is the name of your Candidate model
+      model: 'Candidate',
       key: 'id',
       name: 'candidate_id'
     },
@@ -20,7 +20,7 @@ const JobApplication = sequelize.define('JobApplication', {
   advertisement_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Advertisement', // Assuming 'Advertisement' is the name of your Advertisement model
+      model: 'Advertisement',
       key: 'id',
       name: 'company_id'
     },
@@ -28,7 +28,7 @@ const JobApplication = sequelize.define('JobApplication', {
   company_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Company', // Assuming 'Company' is the name of your Company model
+      model: 'Company',
       key: 'id',
       name: 'advertisement_id'
     },
