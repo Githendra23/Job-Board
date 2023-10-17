@@ -43,6 +43,43 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/verifyToken', async (req, res) => {
+  const userToken = req.headers.authorization;
+  
+  if (!userToken) 
+  {
+    return res.status(401).json({ message: 'Token not provided' });
+  }
+
+  try 
+  {
+    const decodedToken = Candidate.verifyToken(userToken);
+
+    if (!decodedToken) 
+    {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    const userId = decodedToken.userId;
+    
+    const candidate = await Candidate.findByPk(userId, {
+      attributes: { exclude: ['password'] },
+    });
+
+    if (!candidate) 
+    {
+      return res.status(404).json({ message: 'Candidate not found' });
+    }
+
+    return res.status(200).json({ message: 'Token verified' });
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 router.post('/register', async (req, res) => {
   try 
   {
@@ -82,7 +119,7 @@ router.put('/:id', async (req, res) => {
 
   try
   {
-    const candidate = await Candidate.findByPk(id);
+    const candidate = await Candidate.findByPk(id, { attributes: { exclude: ['password'] } });
 
     if (req.body.hasOwnProperty('password'))
     {
@@ -91,9 +128,21 @@ router.put('/:id', async (req, res) => {
       req.body.password = await candidate.hashPassword(password);
     }
 
+    if (req.body.hasOwnProperty('telephone'))
+    {
+      const { telephone, ...otherData } = req.body;
+
+      const existingContact = await Candidate.findOne({ where: { telephone } });
+
+      if (existingContact)
+      {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
+    }
+
     if (req.body.hasOwnProperty('email'))
     {
-      const { email, password, ...otherData } = req.body;
+      const { email, ...otherData } = req.body;
 
       const existingCandidate = await Candidate.findOne({ where: { email } });
 
@@ -105,7 +154,9 @@ router.put('/:id', async (req, res) => {
 
     if (candidate)
     {
-      await candidate.update(req.body);
+      await candidate.update(req.body, {
+        where: { id },
+      });
       return res.status(200).json(candidate);
     }
     else 
@@ -145,6 +196,7 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  const authorizationHeader = req.headers['authorization'];
 
   if (!email || !password) 
   {
@@ -154,19 +206,42 @@ router.post('/login', async (req, res) => {
   try
   {
     const candidate = await Candidate.findOne({ where: { email } });
-
-    if (candidate) 
+    console.log('\x1b[32m'+ authorizationHeader +'\x1b[0m');
+    if (authorizationHeader) 
     {
-      const isMatch = await candidate.comparePassword(password);
+      const [bearer, token] = authorizationHeader.split(' ');
 
-      if (isMatch) 
+      if (bearer === 'Bearer' && token)
       {
-        const token = candidate.generateToken();
-        return res.status(200).json({ message: 'Authentication successful', token });
+        if (candidate.verifyToken(token))
+        {
+          return res.status(200).json({ message: 'Authentication successfulshjdkbfs', token });
+        }
+        else
+        {
+          return res.status(401).json({ message: 'Authentication failed. Invalid token' });
+        }
+      } 
+      else 
+      {
+        res.status(400).json({ error: 'Invalid authorization header format' });
       }
-    }
+    } 
+    else 
+    {
+      if (candidate)
+      {
+        const isMatch = await candidate.comparePassword(password);
 
-    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
+        if (isMatch) 
+        {
+          const token = candidate.generateToken();
+          return res.status(200).json({ message: 'Authentication successful', token });
+        }
+      }
+
+      return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
+    }
   } 
   catch (error) 
   {

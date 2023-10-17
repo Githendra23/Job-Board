@@ -28,12 +28,10 @@ const Candidate = sequelize.define('candidate', {
   telephone: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
   },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
     isEmail: true,
   },
   password: {
@@ -89,6 +87,19 @@ Candidate.prototype.generateToken = function () {
   {
     console.error(err);
     return null;
+  }
+};
+
+Candidate.prototype.verifyToken = function (token) {
+  try
+  {
+    let decoded = jwt.verify(token, secretKey);
+    return decoded ? true : false;
+  }
+  catch (error)
+  {
+    console.error(error);
+    return false;
   }
 };
 
