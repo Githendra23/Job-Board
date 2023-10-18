@@ -36,12 +36,12 @@ const Advertisement = sequelize.define('Advertisement', {
       name: 'company_id'
     },
   },
-  employer_id: {
+  user_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Employer',
+      model: 'User',
       key: 'id',
-      name: 'employer_id'
+      name: 'user_id'
     },
   },
   createdAt: {

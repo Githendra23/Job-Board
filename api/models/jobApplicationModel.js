@@ -9,14 +9,6 @@ const JobApplication = sequelize.define('JobApplication', {
   },
   cv: DataTypes.BLOB,
   cover_letter: DataTypes.BLOB,
-  candidate_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'Candidate',
-      key: 'id',
-      name: 'candidate_id'
-    },
-  },
   advertisement_id: {
     type: DataTypes.INTEGER,
     references: {
@@ -31,6 +23,22 @@ const JobApplication = sequelize.define('JobApplication', {
       model: 'Company',
       key: 'id',
       name: 'advertisement_id'
+    },
+  },
+  employer_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'User',
+      key: 'id',
+      name: 'employer_id'
+    },
+  },
+  candidate_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'User',
+      key: 'id',
+      name: 'candidate_id'
     },
   },
   createdAt: {
