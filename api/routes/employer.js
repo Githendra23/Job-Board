@@ -46,13 +46,20 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const { email, password, ...otherData } = req.body;
+    const { email, password, telephone, ...otherData } = req.body;
 
-    const existingEmployer = await Employer.findOne({ where: { email } });
+    let existingEmployer = await Employer.findOne({ where: { email } });
 
-    if (existingEmployer) 
+    if (existingEmployer)
     {
       return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    existingEmployer = await Employer.findOne({ where: { telephone } });
+
+    if (existingEmployer)
+    {
+      return res.status(400).json({ message: '¨Phone number already exists' });
     }
 
     const employer = Employer.build({ email, ...otherData });
@@ -60,9 +67,12 @@ router.post('/register', async (req, res) => {
 
     await employer.save();
 
-    return res.status(200).json(employer);
+    // Generate a token using the user's ID and email
+    const token = employer.generateToken();
+
+    return res.status(200).json({ employer, token, message: 'Employer registered successfully' });
   } 
-  catch (error) 
+  catch (error)
   {
     console.error(error);
     return res.status(400).json({ message: 'Bad Request' });
@@ -79,7 +89,7 @@ router.put('/:id', async (req, res) => {
 
   try
   {
-    const employer = await Employer.findByPk(id);
+    const employer = await Employer.findByPk(id, { attributes: { exclude: ['password'] } });
 
     if (req.body.hasOwnProperty('password'))
     {
@@ -90,7 +100,7 @@ router.put('/:id', async (req, res) => {
 
     if (req.body.hasOwnProperty('email'))
     {
-      const { email, password, ...otherData } = req.body;
+      const { email, ...otherData } = req.body;
 
       const existingEmployer = await Employer.findOne({ where: { email } });
 
@@ -100,9 +110,23 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    if (req.body.hasOwnProperty('telephone'))
+    {
+      const { email, password, ...otherData } = req.body;
+
+      const existingEmployer = await Employer.findOne({ where: { telephone } });
+
+      if (existingEmployer)
+      {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
+    }
+
     if (employer)
     {
-      await Employer.update(req.body);
+      await Employer.update(req.body, {
+        where: { id },
+      });
       return res.status(200).json(employer);
     }
     else 
@@ -157,7 +181,8 @@ router.post('/login', async (req, res) => {
 
       if (isMatch) 
       {
-        return res.status(200).json({ message: 'Authentication successful' });
+        const token = employer.generateToken();
+        return res.status(200).json({ message: 'Authentication successful', token });
       }
     }
     return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });

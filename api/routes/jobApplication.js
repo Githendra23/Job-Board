@@ -51,7 +51,9 @@ router.put('/:id', async (req, res) => {
 
     if (jobApplication)
     {
-      await JobApplication.update(req.body);
+      await JobApplication.update(req.body, {
+        where: { id },
+      });
       return res.status(200).json(jobApplication);
     }
     else 

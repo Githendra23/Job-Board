@@ -46,21 +46,31 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const { email, password, ...otherData } = req.body;
+    const { email, password, telephone, ...otherData } = req.body;
 
-    const existingCompany = await Company.findOne({ where: { email } });
+    let existingCompany = await Company.findOne({ where: { email } });
 
     if (existingCompany) 
     {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
+    existingCompany = await Company.findOne({ where: { telephone } });
+
+    if (existingCompany) 
+    {
+      return res.status(400).json({ message: 'Phone number already exists' });
+    }
+
     const company = Company.build({ email, ...otherData });
     company.password = await company.hashPassword(password);
 
+    // Generate a token using the user's ID and email
+    const token = company.generateToken();
+
     await company.save();
 
-    return res.status(200).json(company);
+    return res.status(200).json({ company, token, message: 'Company registered successfully' });
   } 
   catch (error)
   {
@@ -77,38 +87,51 @@ router.put('/:id', async (req, res) => {
     return res.status(400).json({ message: 'Please provide data to update the database.' });
   }
 
-  try
+  try 
   {
-    const company = await Company.findByPk(id);
+    const company = await Company.findByPk(id, { attributes: { exclude: ['password'] } });
 
-    if (req.body.hasOwnProperty('password'))
+    if (!company) 
+    {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    if (req.body.hasOwnProperty('password')) 
     {
       const { password, ...otherData } = req.body;
 
       req.body.password = await company.hashPassword(password);
     }
 
-    if (req.body.hasOwnProperty('email'))
+    if (req.body.hasOwnProperty('email')) 
     {
-      const { email, password, ...otherData } = req.body;
+      const { email, ...otherData } = req.body;
 
       const existingCompany = await Company.findOne({ where: { email } });
 
-      if (existingCompany)
+      if (existingCompany && existingCompany.id !== company.id) 
       {
         return res.status(400).json({ message: 'Email already exists' });
       }
     }
 
-    if (company)
+    if (req.body.hasOwnProperty('telephone')) 
     {
-      await Company.update(req.body);
-      return res.status(200).json(company);
+      const { telephone, ...otherData } = req.body;
+
+      const existingCompany = await Company.findOne({ where: { telephone } });
+
+      if (existingCompany && existingCompany.id !== company.id) 
+      {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
     }
-    else 
-    {
-      return res.status(404).json({ message: 'Company not found' });
-    }
+
+    await company.update(req.body, {
+      where: { id },
+    });
+
+    return res.status(200).json(company);
   } 
   catch (error) 
   {
@@ -157,7 +180,8 @@ router.post('/login', async (req, res) => {
 
       if (isMatch) 
       {
-        return res.status(200).json({ message: 'Authentication successful' });
+        const token = candidate.generateToken();
+        return res.status(200).json({ message: 'Authentication successful', token });
       }
     }
     return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });

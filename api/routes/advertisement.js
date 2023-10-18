@@ -51,7 +51,9 @@ router.put('/:id', async (req, res) => {
 
     if (advertisement)
     {
-      await Advertisement.update(req.body);
+      await Advertisement.update(req.body, {
+        where: { id },
+      });
       return res.status(200).json(advertisement);
     }
     else 
