@@ -70,7 +70,7 @@ router.post('/register', async (req, res) => {
     // Generate a token using the user's ID and email
     const token = employer.generateToken();
 
-    return res.status(200).json(employer, token);
+    return res.status(200).json({ employer, token, message: 'Employer registered successfully' });
   } 
   catch (error)
   {

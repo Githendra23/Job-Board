@@ -4,28 +4,12 @@ const sequelize = require('../db/sequelize');
 const jwt = require('jsonwebtoken');
 const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
 
-const Candidate = sequelize.define('candidate', {
+const User = sequelize.define('user', {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
   surname: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  age: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  address: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  country: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  telephone: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -36,6 +20,11 @@ const Candidate = sequelize.define('candidate', {
   },
   password: {
     type: DataTypes.STRING,
+    allowNull: false,
+  },
+  isAdmin: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
   },
   createdAt: {
@@ -49,15 +38,15 @@ const Candidate = sequelize.define('candidate', {
     allowNull: false,
   },
 }, {
-    tableName: 'candidate',
+    tableName: 'user',
 });
 
-Candidate.prototype.comparePassword = async function (password) 
+User.prototype.comparePassword = async function (password) 
 {
   return bcrypt.compare(password, this.password);
 };
 
-Candidate.prototype.hashPassword = async function (password)
+User.prototype.hashPassword = async function (password)
 {
   try
   {
@@ -72,7 +61,7 @@ Candidate.prototype.hashPassword = async function (password)
   };
 };
 
-Candidate.prototype.generateToken = function () {
+User.prototype.generateToken = function () {
   try 
   {
     const token = jwt.sign(
@@ -90,7 +79,7 @@ Candidate.prototype.generateToken = function () {
   }
 };
 
-Candidate.prototype.verifyToken = function (token) {
+User.prototype.verifyToken = function (token) {
   try
   {
     let decoded = jwt.verify(token, secretKey);
@@ -103,4 +92,4 @@ Candidate.prototype.verifyToken = function (token) {
   }
 };
 
-module.exports = Candidate;
+module.exports = User;

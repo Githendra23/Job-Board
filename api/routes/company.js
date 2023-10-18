@@ -70,7 +70,7 @@ router.post('/register', async (req, res) => {
 
     await company.save();
 
-    return res.status(200).json(company, token);
+    return res.status(200).json({ company, token, message: 'Company registered successfully' });
   } 
   catch (error)
   {

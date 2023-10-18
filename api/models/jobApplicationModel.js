@@ -9,12 +9,12 @@ const JobApplication = sequelize.define('JobApplication', {
   },
   cv: DataTypes.BLOB,
   cover_letter: DataTypes.BLOB,
-  candidate_id: {
+  user_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Candidate',
+      model: 'User',
       key: 'id',
-      name: 'candidate_id'
+      name: 'user_id'
     },
   },
   advertisement_id: {
