@@ -16,6 +16,7 @@ const User = sequelize.define('user', {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
     isEmail: true,
   },
   password: {
@@ -24,8 +25,8 @@ const User = sequelize.define('user', {
   },
   isAdmin: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
     allowNull: false,
+    defaultValue: false,
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -76,19 +77,6 @@ User.prototype.generateToken = function () {
   {
     console.error(err);
     return null;
-  }
-};
-
-User.prototype.verifyToken = function (token) {
-  try
-  {
-    let decoded = jwt.verify(token, secretKey);
-    return decoded ? true : false;
-  }
-  catch (error)
-  {
-    console.error(error);
-    return false;
   }
 };
 
