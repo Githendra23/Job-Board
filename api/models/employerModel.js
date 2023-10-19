@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize');
+const jwt = require('jsonwebtoken');
+const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
 
 const Employer = sequelize.define('Employer', {
   id: {
@@ -16,15 +18,9 @@ const Employer = sequelize.define('Employer', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  telephone: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
     isEmail: true,
   },
   password: {
@@ -69,7 +65,38 @@ Employer.prototype.hashPassword = async function (password)
   catch (error)
   {
     console.log(error);
-  };
-}
+  }
+};
+
+Employer.prototype.generateToken = function () {
+  try 
+  {
+    const token = jwt.sign(
+      { userId: this.id, email: this.email },
+      secretKey,
+      { expiresIn: '1h' }
+    );
+
+    return token;
+  } 
+  catch (err) 
+  {
+    console.error(err);
+    return null;
+  }
+};
+
+Employer.prototype.verifyToken = function (token) {
+  try
+  {
+    let decoded = jwt.verify(token, secretKey);
+    return decoded ? true : false;
+  }
+  catch (error)
+  {
+    console.error(error);
+    return false;
+  }
+};
 
 module.exports = Employer;

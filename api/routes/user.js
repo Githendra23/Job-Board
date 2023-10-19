@@ -1,15 +1,17 @@
 const express = require('express');
-const Candidate = require('../models/candidateModel');
+const User = require('../models/userModel');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   try 
   {
-    const candidates = await Candidate.findAll({
-      attributes: { exclude: ['password'] },
+    const users = await User.findAll({
+      attributes: {
+        exclude: ['password']
+      },
     });
 
-    return res.status(200).json(candidates);
+    return res.status(200).json(users);
   } 
   catch (error) 
   {
@@ -23,17 +25,19 @@ router.get('/:id', async (req, res) => {
 
   try 
   {
-    const candidate = await Candidate.findByPk(id, {
-      attributes: { exclude: ['password'] },
+    const user = await User.findByPk(id, {
+      attributes: { 
+        exclude: ['password']
+    }
     });
 
-    if (candidate) 
+    if (user) 
     {
-      return res.status(200).json(candidate);
+      return res.status(200).json(user);
     } 
     else 
     {
-      return res.status(404).json({ message: 'Company not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
   } 
   catch (error) 
@@ -51,9 +55,9 @@ router.get('/verifyToken', async (req, res) => {
     return res.status(401).json({ message: 'Token not provided' });
   }
 
-  try 
+  try
   {
-    const decodedToken = Candidate.verifyToken(userToken);
+    const decodedToken = User.verifyToken(userToken);
 
     if (!decodedToken) 
     {
@@ -62,13 +66,13 @@ router.get('/verifyToken', async (req, res) => {
 
     const userId = decodedToken.userId;
     
-    const candidate = await Candidate.findByPk(userId, {
+    const user = await User.findByPk(userId, {
       attributes: { exclude: ['password'] },
     });
 
-    if (!candidate) 
+    if (!user) 
     {
-      return res.status(404).json({ message: 'Candidate not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     return res.status(200).json({ message: 'Token verified' });
@@ -81,26 +85,28 @@ router.get('/verifyToken', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  try 
+  try
   {
     const { email, password, ...otherData } = req.body;
 
-    const existingCandidate = await Candidate.findOne({ where: { email } });
+    delete otherData.isAdmin;
 
-    if (existingCandidate) 
+    const existingUser = await User.findOne({ where: { email } });
+
+    if (existingUser) 
     {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const candidate = Candidate.build({ email, ...otherData });
-    candidate.password = await candidate.hashPassword(password);
+    const user = User.build({ email, isAdmin: false, ...otherData });
+    user.password = await user.hashPassword(password);
 
     // Generate a token using the user's ID and email
-    const token = candidate.generateToken();
+    const token = user.generateToken();
 
-    await candidate.save();
+    await user.save();
 
-    return res.status(200).json(candidate, token);
+    return res.status(200).json({ user, token, message: 'User registered successfully' });
   } 
   catch (error) 
   {
@@ -119,20 +125,25 @@ router.put('/:id', async (req, res) => {
 
   try
   {
-    const candidate = await Candidate.findByPk(id, { attributes: { exclude: ['password'] } });
+    const user = await User.findByPk(id, { attributes: { exclude: ['password'] } });
+
+    if (user.isAdmin === true)
+    {
+      return res.status(400).json({ message: 'User not found' });
+    }
 
     if (req.body.hasOwnProperty('password'))
     {
       const { password, ...otherData } = req.body;
 
-      req.body.password = await candidate.hashPassword(password);
+      req.body.password = await user.hashPassword(password);
     }
 
     if (req.body.hasOwnProperty('telephone'))
     {
       const { telephone, ...otherData } = req.body;
 
-      const existingContact = await Candidate.findOne({ where: { telephone } });
+      const existingContact = await User.findOne({ where: { telephone } });
 
       if (existingContact)
       {
@@ -144,24 +155,22 @@ router.put('/:id', async (req, res) => {
     {
       const { email, ...otherData } = req.body;
 
-      const existingCandidate = await Candidate.findOne({ where: { email } });
+      const existingUser = await User.findOne({ where: { email } });
 
-      if (existingCandidate)
+      if (existingUser)
       {
         return res.status(400).json({ message: 'Email already exists' });
       }
     }
 
-    if (candidate)
+    if (user)
     {
-      await candidate.update(req.body, {
-        where: { id },
-      });
-      return res.status(200).json(candidate);
+      await user.update(req.body, { where: { id } });
+      return res.status(200).json(user);
     }
     else 
     {
-      return res.status(404).json({ message: 'Candidate not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
   } 
   catch (error) 
@@ -176,15 +185,20 @@ router.delete('/:id', async (req, res) => {
 
   try 
   {
-    const candidate = await Candidate.findByPk(id);
-    if (candidate) 
+    const user = await User.findByPk(id);
+    if (user.isAdmin === true)
     {
-      await candidate.destroy();
-      return res.status(200).json({ message: 'Candidate deleted successfully' });
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user) 
+    {
+      await user.destroy();
+      return res.status(200).json({ message: 'User deleted successfully' });
     } 
     else 
     {
-      return res.status(404).json({ message: 'Candidate not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
   } 
   catch (error) 
@@ -205,7 +219,7 @@ router.post('/login', async (req, res) => {
 
   try
   {
-    const candidate = await Candidate.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email } });
     console.log('\x1b[32m'+ authorizationHeader +'\x1b[0m');
     if (authorizationHeader) 
     {
@@ -213,9 +227,9 @@ router.post('/login', async (req, res) => {
 
       if (bearer === 'Bearer' && token)
       {
-        if (candidate.verifyToken(token))
+        if (user.verifyToken(token))
         {
-          return res.status(200).json({ message: 'Authentication successfulshjdkbfs', token });
+          return res.status(200).json({ message: 'Authentication successful', token });
         }
         else
         {
@@ -229,13 +243,13 @@ router.post('/login', async (req, res) => {
     } 
     else 
     {
-      if (candidate)
+      if (user)
       {
-        const isMatch = await candidate.comparePassword(password);
+        const isMatch = await user.comparePassword(password);
 
         if (isMatch) 
         {
-          const token = candidate.generateToken();
+          const token = user.generateToken();
           return res.status(200).json({ message: 'Authentication successful', token });
         }
       }
