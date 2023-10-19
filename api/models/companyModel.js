@@ -28,6 +28,7 @@ const Company = sequelize.define('Company', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  logo: DataTypes.BLOB,
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
