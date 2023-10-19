@@ -25,14 +25,10 @@ router.get('/:id', async (req, res) => {
   try 
   {
     const jobApplication = await JobApplication.findByPk(parseInt(id));
-    if (jobApplication) 
-    {
-      return res.status(200).json(jobApplication);
-    } 
-    else 
-    {
-      return res.status(404).json({ message: 'JobApplication not found' });
-    }
+
+    if (jobApplication) return res.status(200).json(jobApplication);
+    else return res.status(404).json({ message: 'JobApplication not found' });
+
   } 
   catch (error) 
   {
@@ -46,13 +42,34 @@ router.post('/', async (req, res) => {
 
   if (!advertisement_id || !company_id || !cv || !cover_letter || !user_id)
   {
-    return res.status(400).json({ message: 'Please provide data to create a job application.' });
-  }
+    const missingFields = [];
 
-  if (Number.isInteger(advertisement_id) && Number.isInteger(company_id) || Number.isInteger(employer_id) || 
-      Number.isInteger(cv) || Number.isInteger(cover_letter) || Number.isInteger(user_id))
+    if (!advertisement_id) missingFields.push('advertisement_id');
+    if (!company_id) missingFields.push('company_id');
+    if (!cv) missingFields.push('cv');
+    if (!cover_letter) missingFields.push('cover_letter');
+    if (!user_id) missingFields.push('user_id');
+  
+    return res.status(400).json({
+      message: `Please provide data to create a job application. Missing fields: ${missingFields.join(', ')}.`
+    });
+  }
+  
+  if (!Number.isInteger(advertisement_id) || !Number.isInteger(company_id) || !Number.isInteger(employer_id) || 
+      !Number.isInteger(cv) || !Number.isInteger(cover_letter) || !Number.isInteger(user_id))
   {
-    return res.status(400).json({ message: 'Please provide IDs as valid integers.' });
+    const invalidFields = [];
+
+    if (!Number.isInteger(advertisement_id)) invalidFields.push('advertisement_id');
+    if (!Number.isInteger(company_id)) invalidFields.push('company_id');
+    if (!Number.isInteger(employer_id)) invalidFields.push('employer_id');
+    if (!Number.isInteger(cv)) invalidFields.push('cv');
+    if (!Number.isInteger(cover_letter)) invalidFields.push('cover_letter');
+    if (!Number.isInteger(user_id)) invalidFields.push('user_id');
+  
+    return res.status(400).json({
+      message: `Please provide IDs as valid integers. Invalid fields: ${invalidFields.join(', ')}.`
+    });
   }
 
   try
@@ -78,10 +95,8 @@ router.post('/', async (req, res) => {
       where: { user_id: user_id }
     });
 
-    if (existingUserApplication) 
-    {
-      return res.status(400).json({ message: 'A job application with the same user already exists.' });
-    }
+    if (existingUserApplication) return res.status(400).json({ message: 'A job application with the same user already exists.' });
+
 
     const newJobApplication = await JobApplication.create({
       advertisement_id: advertisement_id,
@@ -103,29 +118,36 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
+  const { advertisement_id, company_id, employer_id, user_id } = req.body;
 
-  delete req.body.id;
-
-  if (!req.body) 
-  {
-    return res.status(400).json({ message: 'Please provide data to update the database.' });
-  }
+  if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
   try
   {
     const jobApplication = await JobApplication.findByPk(id);
+    const updateFields = {};
+
+    if (user_id)
+    {
+      const existingUserApplication = await JobApplication.findOne({
+        where: { user_id: user_id }
+      });
+
+      if (existingUserApplication) return res.status(400).json({ message: 'A job application with the same user already exists.' });
+
+      updateFields.user_id = user_id;
+    }
+
+    if (company_id) updateFields.company_id = company_id; 
+    if (advertisement_id) updateFields.advertisement_id = advertisement_id;
+    if (employer_id) updateFields.employer_id = employer_id;
 
     if (jobApplication)
     {
-      await JobApplication.update(req.body, {
-        where: { id },
-      });
+      await JobApplication.update(updateFields, { where: { id } });
       return res.status(200).json(jobApplication);
     }
-    else 
-    {
-      return res.status(404).json({ message: 'JobApplication not found' });
-    }
+    else return res.status(404).json({ message: 'JobApplication not found' });
   } 
   catch (error) 
   {
@@ -145,10 +167,8 @@ router.delete('/:id', async (req, res) => {
       await JobApplication.destroy();
       return res.status(200).json({ message: 'JobApplication deleted successfully' });
     } 
-    else
-    {
-      return res.status(404).json({ message: 'JobApplication not found' });
-    }
+    else return res.status(404).json({ message: 'JobApplication not found' });
+
   } 
   catch (error) 
   {

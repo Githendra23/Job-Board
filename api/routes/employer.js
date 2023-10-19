@@ -27,14 +27,9 @@ router.get('/:id', async (req, res) => {
       attributes: { exclude: ['password'] },
     });
 
-    if (employer) 
-    {
-      return res.status(200).json(employer);
-    } 
-    else 
-    {
-      return res.status(404).json({ message: 'Company not found' });
-    }
+    if (employer) return res.status(200).json(employer);
+    else return res.status(404).json({ message: 'Company not found' });
+
   } 
   catch (error) 
   {
@@ -46,23 +41,43 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const { email, password, telephone, ...otherData } = req.body;
+    const { name, surname, email, password, company_id } = req.body;
+
+    if (!name || !surname || !email || !password || !company_id)
+    {
+      const missingFields = [];
+
+      if (!name)       missingFields.push('name');
+      if (!surname)    missingFields.push('surname');
+      if (!email)      missingFields.push('email');
+      if (!password)   missingFields.push('password');
+      if (!company_id) missingFields.push('company_id');
+    
+      return res.status(400).json({
+        message: `Please provide data to create an employer. Missing fields: ${missingFields.join(', ')}.`
+      });
+    }
+    else if (typeof name !== 'string' || typeof surname !== 'string' || typeof email !== 'string' ||
+             typeof password !== 'string' || typeof company_id !== 'string')
+    {
+      const wrongFields = [];
+
+      if (typeof name !== 'string')       wrongFields.push('name');
+      if (typeof surname !== 'string')    wrongFields.push('surname');
+      if (typeof email !== 'string')      wrongFields.push('email');
+      if (typeof password !== 'string')   wrongFields.push('password');
+      if (typeof company_id !== 'string') wrongFields.push('company_id');
+    
+      return res.status(400).json({
+        message: `Please provide the correct types to create an employer. wrong fields: ${wrongFields.join(', ')}.`
+      });
+    }
 
     let existingEmployer = await Employer.findOne({ where: { email } });
 
-    if (existingEmployer)
-    {
-      return res.status(400).json({ message: 'Email already exists' });
-    }
+    if (existingEmployer) return res.status(400).json({ message: 'Email already exists' });
 
-    existingEmployer = await Employer.findOne({ where: { telephone } });
-
-    if (existingEmployer)
-    {
-      return res.status(400).json({ message: '¨Phone number already exists' });
-    }
-
-    const employer = Employer.build({ email, ...otherData });
+    const employer = Employer.build({ name, surname, email, company_id });
     employer.password = await employer.hashPassword(password);
 
     await employer.save();
@@ -81,58 +96,38 @@ router.post('/register', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
+  const { name, surname, email, password, company_id } = req.body;
+  const updateFields = {};
 
-  if (!req.body) 
-  {
-    return res.status(400).json({ message: 'Please provide data to update the database.' });
-  }
+  if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
   try
   {
     const employer = await Employer.findByPk(id, { attributes: { exclude: ['password'] } });
 
-    if (req.body.hasOwnProperty('password'))
+    if (email)
     {
-      const { password, ...otherData } = req.body;
-
-      req.body.password = await employer.hashPassword(password);
-    }
-
-    if (req.body.hasOwnProperty('email'))
-    {
-      const { email, ...otherData } = req.body;
-
       const existingEmployer = await Employer.findOne({ where: { email } });
 
-      if (existingEmployer)
-      {
-        return res.status(400).json({ message: 'Email already exists' });
-      }
-    }
+      if (existingEmployer) return res.status(400).json({ message: 'Email already exists' });
 
-    if (req.body.hasOwnProperty('telephone'))
-    {
-      const { email, password, ...otherData } = req.body;
-
-      const existingEmployer = await Employer.findOne({ where: { telephone } });
-
-      if (existingEmployer)
-      {
-        return res.status(400).json({ message: 'Phone number already exists' });
-      }
+      updateFields.email = email;
     }
 
     if (employer)
     {
+      if (name) updateFields.name = name;
+      if (surname) updateFields.surname = surname;
+      if (company_id) updateFields.company_id = company_id;
+      if (password) updateFields.password = await employer.hashPassword(password);
+
       await Employer.update(req.body, {
         where: { id },
       });
       return res.status(200).json(employer);
     }
-    else 
-    {
-      return res.status(404).json({ message: 'Employer not found' });
-    }
+    else return res.status(404).json({ message: 'Employer not found' });
+    
   } 
   catch (error) 
   {
@@ -152,10 +147,8 @@ router.delete('/:id', async (req, res) => {
       await employer.destroy();
       return res.status(200).json({ message: 'Employer deleted successfully' });
     } 
-    else 
-    {
-      return res.status(404).json({ message: 'Employer not found' });
-    }
+    else return res.status(404).json({ message: 'Employer not found' });
+    
   } 
   catch (error) 
   {
@@ -169,9 +162,20 @@ router.post('/login', async (req, res) => {
 
   if (!email || !password) 
   {
-    return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
+    return res.status(400).json({ message: `Please provide ${!email ? 'email' : ''}${!email && !password ? ' and ' : ''}${!password ? 'password' : ''} for authentication.` });
   }
-
+  else if (typeof email !== 'string' || typeof password !== 'string')
+  {
+    const wrongFields = [];
+  
+    if (typeof email !== 'string') wrongFields.push('email');
+    if (typeof password !== 'string') wrongFields.push('password');
+  
+    return res.status(400).json({
+      message: `Please provide both email and password for authentication. Missing fields: ${missingFields.join(', ')}.`
+    });
+  }
+  
   try 
   {
     const employer = await Employer.findOne({ where: { email } });
