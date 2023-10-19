@@ -99,11 +99,13 @@ router.put('/:id', async (req, res) => {
   const updateFields = {};
 
   if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
+  if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
   try 
   {
     const company = await Company.findByPk(id, { attributes: { exclude: ['password'] } });
 
+    if (!company) return res.status(404).json({ message: 'Company not found' });
     if (!company) return res.status(404).json({ message: 'Company not found' });
 
     if (email) 
