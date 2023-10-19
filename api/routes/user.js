@@ -87,9 +87,35 @@ router.get('/verifyToken', async (req, res) => {
 router.post('/register', async (req, res) => {
   try
   {
-    const { email, password, ...otherData } = req.body;
+    const { name, surname, email, password } = req.body;
 
-    delete otherData.isAdmin;
+    if (!name || !surname || !email || !password)
+    {
+      const missingFields = [];
+
+      if (!name) missingFields.push('name');
+      if (!surname) missingFields.push('surname');
+      if (!email) missingFields.push('email');
+      if (!password) missingFields.push('password');
+
+      return res.status(400).json({
+        message: `Please provide data to create a user. Missing fields: ${missingFields.join(', ')}.`
+      });
+    }
+    else if (typeof name !== 'string' || typeof surname !== 'string' || 
+             typeof email !== 'string' || typeof password !== 'string')
+    {
+      const wrongFields = [];
+    
+      if (typeof name !== 'string') wrongFields.push('name');
+      if (typeof surname !== 'string') wrongFields.push('surname');
+      if (typeof email !== 'string') wrongFields.push('email');
+      if (typeof password !== 'string') wrongFields.push('password');
+    
+      return res.status(400).json({
+        message: `Please provide the correct types to create an employer. Wrong fields: ${wrongFields.join(', ')}.`
+      });
+    }
 
     const existingUser = await User.findOne({ where: { email } });
 
@@ -98,7 +124,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const user = User.build({ email, isAdmin: false, ...otherData });
+    const user = User.build({ name, surname, email, isAdmin: false });
     user.password = await user.hashPassword(password);
 
     // Generate a token using the user's ID and email
@@ -117,63 +143,35 @@ router.post('/register', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
+  const { name, surname, email, password } = req.body;
 
-  if (!req.body) 
-  {
-    return res.status(400).json({ message: 'Please provide data to update the database.' });
-  }
+  if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
   try
   {
     const user = await User.findByPk(id, { attributes: { exclude: ['password'] } });
+    const updateFields = {};
 
-    if (user.isAdmin === true)
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.isAdmin === true) return res.status(400).json({ message: 'User not found' });
+
+    if (email && email !== user.email)
     {
-      return res.status(400).json({ message: 'User not found' });
-    }
-
-    if (req.body.hasOwnProperty('password'))
-    {
-      const { password, ...otherData } = req.body;
-
-      req.body.password = await user.hashPassword(password);
-    }
-
-    if (req.body.hasOwnProperty('telephone'))
-    {
-      const { telephone, ...otherData } = req.body;
-
-      const existingContact = await User.findOne({ where: { telephone } });
-
-      if (existingContact)
-      {
-        return res.status(400).json({ message: 'Phone number already exists' });
-      }
-    }
-
-    if (req.body.hasOwnProperty('email'))
-    {
-      const { email, ...otherData } = req.body;
-
       const existingUser = await User.findOne({ where: { email } });
 
-      if (existingUser)
-      {
-        return res.status(400).json({ message: 'Email already exists' });
-      }
+      if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+
+      updateFields.email = email;
     }
 
-    if (user)
-    {
-      await user.update(req.body, { where: { id } });
-      return res.status(200).json(user);
-    }
-    else 
-    {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (name) updateFields.name = name;
+    if (surname) updateFields.surname = surname;
+    if (password) updateFields.password = await user.hashPassword(password);
+
+    await user.update(updateFields);
+    return res.status(200).json(user);
   } 
-  catch (error) 
+  catch (error)
   {
     console.error(error);
     return res.status(400).json({ message: 'Invalid JSON format. Please check the provided keys and values.' });
@@ -186,20 +184,15 @@ router.delete('/:id', async (req, res) => {
   try 
   {
     const user = await User.findByPk(id);
-    if (user.isAdmin === true)
-    {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (user.isAdmin === true) return res.status(404).json({ message: 'User not found' });
 
     if (user) 
     {
       await user.destroy();
       return res.status(200).json({ message: 'User deleted successfully' });
     } 
-    else 
-    {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    else return res.status(404).json({ message: 'User not found' });
+
   } 
   catch (error) 
   {
@@ -214,7 +207,18 @@ router.post('/login', async (req, res) => {
 
   if (!email || !password) 
   {
-    return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
+    return res.status(400).json({ message: `Please provide ${!email ? 'email' : ''}${!email && !password ? ' and ' : ''}${!password ? 'password' : ''} for authentication.` });
+  }
+  else if (typeof email !== 'string' || typeof password !== 'string')
+  {
+    const wrongFields = [];
+  
+    if (typeof email !== 'string') wrongFields.push('email');
+    if (typeof password !== 'string') wrongFields.push('password');
+  
+    return res.status(400).json({
+      message: `Please provide both email and password for authentication. Missing fields: ${missingFields.join(', ')}.`
+    });
   }
 
   try
@@ -227,19 +231,12 @@ router.post('/login', async (req, res) => {
 
       if (bearer === 'Bearer' && token)
       {
-        if (user.verifyToken(token))
-        {
-          return res.status(200).json({ message: 'Authentication successful', token });
-        }
-        else
-        {
-          return res.status(401).json({ message: 'Authentication failed. Invalid token' });
-        }
+        if (user.verifyToken(token)) return res.status(200).json({ message: 'Authentication successful', token });
+        else return res.status(401).json({ message: 'Authentication failed. Invalid token' });
+
       } 
-      else 
-      {
-        res.status(400).json({ error: 'Invalid authorization header format' });
-      }
+      else res.status(400).json({ error: 'Invalid authorization header format' });
+
     } 
     else 
     {

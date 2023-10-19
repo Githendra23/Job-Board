@@ -21,14 +21,9 @@ router.get('/:id', async (req, res) => {
   try 
   {
     const advertisement = await Advertisement.findByPk(parseInt(id));
-    if (advertisement) 
-    {
-      return res.status(200).json(advertisement);
-    } 
-    else 
-    {
-      return res.status(404).json({ message: 'Advertisement not found' });
-    }
+
+    if (advertisement) return res.status(200).json(advertisement);
+    else return res.status(404).json({ message: 'Advertisement not found' });
   } 
   catch (error) 
   {
@@ -40,10 +35,9 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
 
-  if (!req.body) 
-  {
-    return res.status(400).json({ message: 'Please provide data to update the database.' });
-  }
+  delete req.body.id;
+
+  if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
   try
   {
@@ -56,10 +50,8 @@ router.put('/:id', async (req, res) => {
       });
       return res.status(200).json(advertisement);
     }
-    else 
-    {
-      return res.status(404).json({ message: 'Advertisement not found' });
-    }
+    else return res.status(404).json({ message: 'Advertisement not found' });
+
   } 
   catch (error) 
   {
@@ -79,10 +71,7 @@ router.delete('/:id', async (req, res) => {
       await Advertisement.destroy();
       return res.status(200).json({ message: 'Advertisement deleted successfully' });
     } 
-    else 
-    {
-      return res.status(404).json({ message: 'Advertisement not found' });
-    }
+    else return res.status(404).json({ message: 'Advertisement not found' });
   } 
   catch (error) 
   {
