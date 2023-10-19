@@ -18,6 +18,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/logo/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try 
+  {
+    const company = await Company.findByPk(id);
+
+    if (company && company.logo) 
+    {
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.send(company.logo);
+    } 
+    else res.status(404).json({ message: 'Company not found or logo missing' });
+  } 
+  catch (error) 
+  {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -41,7 +62,7 @@ router.get('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   try 
   {
-    const { name, email, password, description } = req.body;
+    const { name, email, password, description, logo } = req.body;
 
     if (!name || !email || !password || !description)
     {
@@ -75,6 +96,12 @@ router.post('/register', async (req, res) => {
 
     if (existingCompany) return res.status(400).json({ message: 'Email already exists' });
 
+    if (logo) 
+    {
+      const uploadResult = await company.uploadIMG(logo);
+
+      if (uploadResult === false) return res.status(500).json({ message: "Failed to upload the logo. Ensure it's a valid image file." });
+    }
 
     const company = Company.build({ name, email, description });
     company.password = await company.hashPassword(password);
@@ -99,11 +126,13 @@ router.put('/:id', async (req, res) => {
   const updateFields = {};
 
   if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
+  if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
   try 
   {
     const company = await Company.findByPk(id, { attributes: { exclude: ['password'] } });
 
+    if (!company) return res.status(404).json({ message: 'Company not found' });
     if (!company) return res.status(404).json({ message: 'Company not found' });
 
     if (email) 
@@ -158,30 +187,25 @@ router.post('/login', async (req, res) => {
 
   if (!email || !password) 
   {
-    return res.status(400).json({ message: `Please provide ${!email ? 'email' : ''}${!email && !password ? ' and ' : ''}${!password ? 'password' : ''} for authentication.` });
+    return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
   }
-  else if (typeof email !== 'string' || typeof password !== 'string')
+
+  if (typeof email !== 'string' || typeof password !== 'string') 
   {
-    const wrongFields = [];
-  
-    if (typeof email !== 'string') wrongFields.push('email');
-    if (typeof password !== 'string') wrongFields.push('password');
-  
-    return res.status(400).json({
-      message: `Please provide both email and password for authentication. Missing fields: ${missingFields.join(', ')}.`
-    });
+    return res.status(400).json({ message: 'Please provide the correct types for email and password.' });
   }
 
   try 
   {
     const company = await Company.findOne({ where: { email } });
-    if (company)
+
+    if (company) 
     {
-      const isMatch = await Company.comparePassword(password);
+      const isMatch = await company.comparePassword(password);
 
       if (isMatch) 
       {
-        const token = candidate.generateToken();
+        const token = company.generateToken();
         return res.status(200).json({ message: 'Authentication successful', token });
       }
     }

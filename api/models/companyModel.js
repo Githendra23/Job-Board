@@ -3,6 +3,7 @@ const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize');
 const jwt = require('jsonwebtoken');
 const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
+const fs = require('fs').promises;
 
 const Company = sequelize.define('Company', {
   id: {
@@ -85,6 +86,21 @@ Company.prototype.verifyToken = function (token) {
     return decoded ? true : false;
   }
   catch (error)
+  {
+    console.error(error);
+    return false;
+  }
+};
+
+Company.prototype.uploadIMG = async function (imgPath) {
+  try 
+  {
+    const binaryData = await fs.readFile(imgPath);
+    this.logo = binaryData;
+    await this.save();
+    return true;
+  } 
+  catch (error) 
   {
     console.error(error);
     return false;
