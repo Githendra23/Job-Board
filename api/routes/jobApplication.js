@@ -1,5 +1,9 @@
 const express = require('express');
 const JobApplication = require('../models/jobApplicationModel');
+const Employer = require('../models/employerModel');
+const User = require('../models/userModel');
+const Company = require('../models/companyModel');
+const Advertisement = require('../models/advertisementModel')
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -37,8 +41,70 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.post('/', async (req, res) => {
+  const { advertisement_id, company_id, employer_id, cv, cover_letter, user_id } = req.body;
+
+  if (!advertisement_id || !company_id || !cv || !cover_letter || !user_id)
+  {
+    return res.status(400).json({ message: 'Please provide data to create a job application.' });
+  }
+
+  if (Number.isInteger(advertisement_id) && Number.isInteger(company_id) || Number.isInteger(employer_id) || 
+      Number.isInteger(cv) || Number.isInteger(cover_letter) || Number.isInteger(user_id))
+  {
+    return res.status(400).json({ message: 'Please provide IDs as valid integers.' });
+  }
+
+  try
+  {
+    const user = await User.findByPk(user_id);
+    const advertisement = await Advertisement.findByPk(advertisement_id);
+    const employer = await Employer.findByPk(employer_id);
+    const company = await Company.findByPk(company_id);
+
+    if ([user, employer, advertisement, company].every(item => item === null))
+    {
+      let missingResources = [];
+
+      if (!user) missingResources.push('User');
+      if (!advertisement) missingResources.push('Advertisement');
+      if (!employer) missingResources.push('Employer');
+      if (!company) missingResources.push('Company');
+  
+      return res.status(400).json({ message: `${missingResources.join(', ')} don't exist` });
+    }
+    
+    const existingUserApplication = await JobApplication.findOne({
+      where: { user_id: user_id }
+    });
+
+    if (existingUserApplication) 
+    {
+      return res.status(400).json({ message: 'A job application with the same user already exists.' });
+    }
+
+    const newJobApplication = await JobApplication.create({
+      advertisement_id: advertisement_id,
+      company_id: company_id,
+      employer_id: employer_id,
+      user_id: user_id,
+      cv: cv,
+      cover_letter: cover_letter
+    });
+
+    return res.status(200).json({ message: 'Job application saved successfully', jobApplication: newJobApplication });
+  }
+  catch (error)
+  {
+    console.log(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
+
+  delete req.body.id;
 
   if (!req.body) 
   {
@@ -64,7 +130,7 @@ router.put('/:id', async (req, res) => {
   catch (error) 
   {
     console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(400).json({ message: 'Invalid JSON format. Please check the provided keys and values.' });
   }
 });
 

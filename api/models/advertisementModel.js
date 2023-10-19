@@ -31,8 +31,8 @@ const Advertisement = sequelize.define('Advertisement', {
   company_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Company',
-      key: 'id',
+      model: 'Employer',
+      key: 'company_id',
       name: 'company_id'
     },
   },

@@ -16,21 +16,30 @@ const JobApplication = sequelize.define('JobApplication', {
       key: 'id',
       name: 'user_id'
     },
+    unique: true
   },
   advertisement_id: {
     type: DataTypes.INTEGER,
     references: {
       model: 'Advertisement',
       key: 'id',
-      name: 'company_id'
+      name: 'advertisement_id'
+    },
+  },
+  employer_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'Advertisement',
+      key: 'employer_id',
+      name: 'employer_id'
     },
   },
   company_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Company',
-      key: 'id',
-      name: 'advertisement_id'
+      model: 'Advertisement',
+      key: 'company_id',
+      name: 'company_id'
     },
   },
   createdAt: {
