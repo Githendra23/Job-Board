@@ -72,7 +72,7 @@ Employer.prototype.generateToken = function () {
   try 
   {
     const token = jwt.sign(
-      { userId: this.id, email: this.email },
+      { id: this.id, email: this.email },
       secretKey,
       { expiresIn: '1h' }
     );
@@ -86,16 +86,26 @@ Employer.prototype.generateToken = function () {
   }
 };
 
-Employer.prototype.verifyToken = function (token) {
-  try
+Employer.prototype.getInfoFromToken = function (token) {
+  try 
   {
-    let decoded = jwt.verify(token, secretKey);
-    return decoded ? true : false;
-  }
-  catch (error)
+    const decoded = jwt.verify(token, secretKey);
+
+    if (decoded) 
+    {
+      const id = decoded.id;
+      const email = decoded.email;
+      const role = decoded.role;
+
+      return { id, email, role };
+    }
+
+    return null;
+  } 
+  catch (err) 
   {
-    console.error(error);
-    return false;
+    console.error(err);
+    return null;
   }
 };
 

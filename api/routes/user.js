@@ -47,43 +47,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.get('/verifyToken', async (req, res) => {
-  const userToken = req.headers.authorization;
-  
-  if (!userToken) 
-  {
-    return res.status(401).json({ message: 'Token not provided' });
-  }
-
-  try
-  {
-    const decodedToken = User.verifyToken(userToken);
-
-    if (!decodedToken) 
-    {
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-
-    const userId = decodedToken.userId;
-    
-    const user = await User.findByPk(userId, {
-      attributes: { exclude: ['password'] },
-    });
-
-    if (!user) 
-    {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    return res.status(200).json({ message: 'Token verified' });
-  } 
-  catch (error) 
-  {
-    console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
 router.post('/register', async (req, res) => {
   try
   {
@@ -128,7 +91,7 @@ router.post('/register', async (req, res) => {
     user.password = await user.hashPassword(password);
 
     // Generate a token using the user's ID and email
-    const token = user.generateToken();
+    const token = user.generateToken('candidate');
 
     await user.save();
 
@@ -203,56 +166,40 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const authorizationHeader = req.headers['authorization'];
 
   if (!email || !password) 
   {
     return res.status(400).json({ message: `Please provide ${!email ? 'email' : ''}${!email && !password ? ' and ' : ''}${!password ? 'password' : ''} for authentication.` });
-  }
-  else if (typeof email !== 'string' || typeof password !== 'string')
+  } 
+  else if (typeof email !== 'string' || typeof password !== 'string') 
   {
     const wrongFields = [];
-  
+
     if (typeof email !== 'string') wrongFields.push('email');
     if (typeof password !== 'string') wrongFields.push('password');
-  
+
     return res.status(400).json({
-      message: `Please provide both email and password for authentication. Missing fields: ${missingFields.join(', ')}.`
+      message: `Please provide both email and password for authentication. Missing fields: ${wrongFields.join(', ')}.`
     });
   }
 
-  try
+  try 
   {
     const user = await User.findOne({ where: { email } });
-    console.log('\x1b[32m'+ authorizationHeader +'\x1b[0m');
-    if (authorizationHeader) 
+
+    if (user) 
     {
-      const [bearer, token] = authorizationHeader.split(' ');
+      const isMatch = await user.comparePassword(password);
 
-      if (bearer === 'Bearer' && token)
+      if (isMatch) 
       {
-        if (user.verifyToken(token)) return res.status(200).json({ message: 'Authentication successful', token });
-        else return res.status(401).json({ message: 'Authentication failed. Invalid token' });
-
-      } 
-      else res.status(400).json({ error: 'Invalid authorization header format' });
-
-    } 
-    else 
-    {
-      if (user)
-      {
-        const isMatch = await user.comparePassword(password);
-
-        if (isMatch) 
-        {
-          const token = user.generateToken();
-          return res.status(200).json({ message: 'Authentication successful', token });
-        }
+        const newToken = user.generateToken();
+        return res.status(200).json({ message: 'Authentication successful', token: newToken });
       }
-
-      return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
     }
+
+    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
+    
   } 
   catch (error) 
   {

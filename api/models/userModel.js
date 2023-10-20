@@ -61,16 +61,39 @@ User.prototype.hashPassword = async function (password)
   };
 };
 
-User.prototype.generateToken = function () {
+User.prototype.generateToken = function (role) {
   try 
   {
     const token = jwt.sign(
-      { userId: this.id, email: this.email },
+      { id: this.id, email: this.email, role: role },
       secretKey,
       { expiresIn: '1h' }
     );
 
     return token;
+  } 
+  catch (err) 
+  {
+    console.error(err);
+    return null;
+  }
+};
+
+User.prototype.getInfoFromToken = function (token) {
+  try 
+  {
+    const decoded = jwt.verify(token, secretKey);
+
+    if (decoded) 
+    {
+      const id = decoded.id;
+      const email = decoded.email;
+      const role = decoded.role;
+
+      return { id, email, role };
+    }
+
+    return null;
   } 
   catch (err) 
   {

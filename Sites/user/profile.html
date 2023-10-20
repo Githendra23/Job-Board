@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="profile_style.css">
+        <title>Profile</title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+        <script src="profile_script.js"></script>
+    </head>
+
+    <body>
+        <div class="container" id="user">
+            <h1 class="text-center">Profile</h1>
+        
+            <form>
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" id="name">
+                </div>
+        
+                <div class="form-group">
+                    <label for="surname">Surname:</label>
+                    <input type="text" class="form-control" id="surname">
+                </div>
+        
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" class="form-control" id="email">
+                </div>
+        
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+        
+        <div class="container" id="company">
+            <h1 class="text-center">Profile</h1>
+        
+            <form>
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" id="name">
+                </div>
+        
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" class="form-control" id="email">
+                </div>
+        
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea class="form-control" id="description"></textarea>
+                </div>
+        
+                <div class="form-group">
+                    <label for="logo">Logo:</label>
+                    <div class="custom-file">
+                        <input type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">                    
+                    </div>
+                </div>                
+        
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </body>
+</html>
