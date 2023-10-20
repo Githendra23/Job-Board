@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="slos8.css">
+
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <h2 class="text-center">Sign Up</h2>
+            
+            <form class="form-horizontal" onsubmit="signin();return false">
+                <div class="form-horizontal" id="formInput"></div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="email">Email:</label>
+                    <div class="col-sm-10">
+                        <input required type="email" class="form-control input-color:#ffaa5e" id="email" name="email" placeholder="Enter email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="password">Password:</label>
+                    <div class="col-sm-10">
+                        <input required type="password" class="form-control" id="password" name="password" placeholder="Enter password">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="password">Verify password:</label>
+                    <div class="col-sm-10">
+                        <input required type="password" class="form-control" id="verifypassword" name="verifypassword" placeholder="Enter password">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="role">Role:</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" id="role" name="role" onchange="load()">
+                            <option value="user">Candidate</option>
+                            <option value="company">Company</option>
+                        </select>
+                    </div>
+                </div>
+
+                
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn">Sign up</button>
+                        <a href="login.html">Login</a>
+                    </div>
+                </div>
+            </form>
+
+        </div>  
+        <div class="serverReturn" ></div>
+        <script src="signup.js"></script>      
+    </body>
+</html>

@@ -1,0 +1,39 @@
+html{
+    background-color: #0d2b45;
+    min-height: 100%;
+    min-width: 100%;
+}
+.background{
+    color: #ffecd6;
+    align-items: center;
+    background-color: #0d2b45;
+    min-height: 100%;
+    min-width: 100%;
+}
+
+body{
+    padding: 0;
+    margin: 0;
+    background-color:  #0d2b45;
+    color:#ffecd6
+}
+
+
+button{
+
+    color:#0d2b45;
+    background: #ffaa5e;
+}
+
+a{
+    color: #ffaa5e;
+}
+
+input{
+    background: linear-gradient(#8d697a,#b38097);
+    color:#ffd4a3;
+}
+
+textarea{
+    resize:vertical
+}
