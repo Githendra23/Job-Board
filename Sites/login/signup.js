@@ -106,14 +106,19 @@ function signin()
         .then(function(response){
 
             if (response.ok) { 
-                window.location.href="../user/index.html"
-                return response.text();
+                return response.json();
             } else {
-                msg.innerHTML=`<p>${response.message}</p>`
+                return response.json().then((data) => {
+                    msg.innerHTML=`<p class="col-sm-offset-2 col-sm-10">${data.message}</p>`
+                    console.error(data.message)})
             }
         })
         .then(function(data){
-        // spInput.innerHTML=data;
+            console.log(data.message)
+            msg.innerHTML=`<p class="col-sm-offset-2 col-sm-10">${data.message}</p>`
+            document.cookie="token="+data.token+"; path=/"
+            console.log(document.cookie)
+            window.location.href="../user/index.html"
         })
         
     }
