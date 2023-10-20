@@ -6,7 +6,7 @@ const Employer = require('../models/employerModel');
 const jwt = require('jsonwebtoken');
 const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
 
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
     const { token } = req.body;
 
     if (!token) return res.status(401).json({ message: 'Token not provided' });
