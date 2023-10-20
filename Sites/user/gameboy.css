@@ -1,0 +1,56 @@
+html{
+    background-color: #405010;
+    min-height: 100%;
+    min-width: 100%;
+}
+.background{
+    color: #d0d058;
+    align-items: center;
+    background-color: #405010;
+    min-height: 100%;
+    min-width: 100%;
+}
+
+body{
+    padding: 0;
+    margin: 0;
+    background-color: yellow;
+    color:yellow
+}
+.siteTitle{
+    text-align: center;
+}
+
+.jobListing{
+    margin: 1%;
+    margin-bottom: 10%;
+    background-color: #708028;
+    color: #d0d058;
+    padding-bottom: 10px;
+    border-style:outset;
+    border-color: gold;
+}
+
+.learnMore{
+    position:inherit;
+    /* margin-left: 85%; */
+    background-color: #a0a840;
+    color: #d0d058;
+    border-color: #d0d058;
+    
+}
+
+.addInfo{
+    background-color: rgba(16, 36, 58, 0.171);
+    border: 1px inset;
+    margin: 5px;
+    margin-top: 15px;
+}
+
+.descr{
+    background-color: rgba(255, 255, 255, 0.226);
+}
+
+.tag{
+    color:rgba(255, 255, 255, 0.425)
+}

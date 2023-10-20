@@ -26,8 +26,8 @@ company.addEventListener('click',function()
 user.addEventListener('click',function()
 {
     content.innerHTML="users :3"
-    loadtable("candidate")
-    current_tab="candidate"
+    loadtable("user")
+    current_tab="user"
     spInput.innerHTML=""
 }
 )
@@ -37,9 +37,7 @@ ad.addEventListener('click',function()
     loadtable("advertisement")
     current_tab="advertisement"
     spInput.innerHTML=""
-
 }
-
 )
 
 
@@ -49,7 +47,6 @@ app.addEventListener('click',function()
     loadtable("job_application")
     current_tab="job_application"
     spInput.innerHTML=""
-
 }
 )
 
@@ -70,45 +67,8 @@ setInterval(function ()
         {loadtable(current_tab)}
     },4000)
 
-// var colordir=false
-// let color=0
-// var intervalId = setInterval(function(){
-//     let maxVal = 0xFFFFFF;
-    
-//     // let randomNumber = Math.random() * maxVal;
-//     // randomNumber = Math.floor(randomNumber);
-//     // bg.style.backgroundColor="#"+randomNumber.toString(16).toUpperCase();
-//     // document.body.style.backgroundColor="#"+randomNumber.toString(16).toUpperCase();
-    
-//     // document.style.backgroundColor=randomNumber.toString(16);
-//     content.innerHTML+=color.toString(16).toUpperCase()+"<br>"
-//     if (color==0)
-//     {
-//         colordir=false
-//     }
-//     if (color==maxVal)
-//     {
-//         colordir=false
-//     }
-
-
-//     if (colordir==false)
-//     {
-//         color++
-//     }
-//     else
-//     {
-//         color--
-//     }
-//     bg.style.backgroundColor="#"+color.toString(16).toUpperCase();
-//     document.body.style.backgroundColor="#"+color.toString(16).toUpperCase();
-
-// },1);
-
-// clearInterval(intervalId);
-
 function loadtable(tabledb)
-{   //console.log(tabledb)
+{
     
     inputs=[]
     tableLink=JSON.stringify(tabledb)
@@ -125,7 +85,6 @@ function loadtable(tabledb)
             content.innerHTML="fetching data..."
             
             console.log(data)
-            //console.log(Object.keys(data).length)
             if (Object.keys(data).length<=0)
             {
                 content.innerHTML="this table is empty"
@@ -139,16 +98,13 @@ function loadtable(tabledb)
                     inputs.push(key)
                 })
                 table+="<th></th><th></th></tr>"
-                // table=`<table class="table"><tr><th>Name</th><th>Description</th><th>Email</th><th>phone</th><th>country</th><th></th><th></th>`
                 for(let i=0; i<Object.keys(data).length; i++)
                 {
                 table+=`<tr>`
                 Object.keys(data[0]).forEach(function(key) 
                     {
-                        //console.log(JSON.stringify(data[i][key]))
                         table+=`<td class="tabValue">${data[i][key]}</td>`
                     })
-                    //console.log(tabledb)
                     table+=`<td><button onclick=edit(${i})>edit</button></td>
                     <td><button onclick=deletedb(${tableLink},${data[i].id})>delete</button></td>
                     </tr>`
@@ -156,14 +112,12 @@ function loadtable(tabledb)
                 table+="</table>"
                 content.innerHTML=table
             }
-            // console.log(inputs);
             content.innerHTML+=`<br><button onclick=add(${tableLink})>Add</button>`     
 })
 }
 
 function deletedb(table, num)
 {
-    //console.log("delete: "+table+num)
     fetch(`http://localhost:8080/${table}/${num}`,{method:"DELETE"})
     loadtable(current_tab)
 }
@@ -185,7 +139,6 @@ function add(table)
         }
     }
     else{
-    // console.log(tabData)
     if (table =="company")
     spInput.innerHTML=`
 <input type="text" placeholder="Name">
@@ -216,7 +169,7 @@ if (table =="employer")
 <input type="text" placeholder="Company id">
 `
 
-if (table =="candidate")
+if (table =="user")
     spInput.innerHTML=`
 <input type="text" placeholder="Title">
 <input type="text" placeholder="Title">
@@ -231,7 +184,7 @@ if (table =="job_application")
     spInput.innerHTML=`
 <input type="text" placeholder="Title">
 `}
-spInput.innerHTML+=`<input type="text" placeholder="Password" class="toSend" id="password"></input>`
+spInput.innerHTML+=`<input type="password" placeholder="Password" class="toSend" id="password"></input>`
 spInput.innerHTML+=`<button onclick=addDb(${table})>Save</button>`
 }
 
@@ -246,7 +199,11 @@ function addDb(table)
         
         inputVal=document.getElementsByClassName("toSend")[i]
 
+        if (inputVal.id !=="company_id")
         senData+='"'+inputVal.id+'"'+" : "+'"'+inputVal.value+'"'
+        else
+        senData+='"'+inputVal.id+'"'+" : "+inputVal.value
+    
         
     
 
@@ -263,6 +220,18 @@ function addDb(table)
             'Content-Type': 'application/json'
           },
         
+    })
+    .then(function(response){
+
+        if (response.ok) { 
+            spInput.innerHTML="<p>Row added</p>";
+            return response.text();
+        } else {
+            spInput.innerHTML="<p>Invalid creation</p>";
+        }
+    })
+    .then(function(data){
+    // spInput.innerHTML=data;
     })
 }
 
@@ -301,14 +270,14 @@ function editDb()
         let nextInput=document.getElementsByClassName("toSend")[i+1]
         if (inputVal.value !=="")
         {
-        if (inputVal.id !=="telephone")
+        if (inputVal.id !=="company_id")
         senData+='"'+inputVal.id+'"'+" : "+'"'+inputVal.value+'"'
         else
         senData+='"'+inputVal.id+'"'+" : "+inputVal.value
     
-
-        if (nextInput.value !=="" && nextInput.id!=="createdAt" && nextInput.id!=="updatedAt")
-        senData+=',\n'}
+        if (nextInput!==undefined)
+        {if (nextInput.value !=="" && nextInput.id!=="createdAt" && nextInput.id!=="updatedAt")
+        senData+=',\n'}}
     }
     senData+='}'
     console.log(senData)
@@ -321,6 +290,18 @@ function editDb()
             'Content-Type': 'application/json'
           },
         
+    })
+    .then(function(response){
+        if (response.ok) {
+            spInput.innerHTML="<p>Successful edit</p>"
+            return response.text();
+        } else {
+            spInput.innerHTML="<p>Invalid edit</p>";
+        }
+    })
+    .then(function(data){
+        console.log(data)
+    // spInput.innerHTML=data
     })
 
 }
