@@ -2,6 +2,7 @@ let useremail
 let userId
 let userRole
 
+
 console.log(getCookie("token"))
 
 function getCookie(cookie)
@@ -76,7 +77,8 @@ var bg = document.getElementById("background");
     {    
         for (let i = 0; i<Object.keys(data).length  ; i++)
         {
-
+            companyid=data[i].company_id
+            employerid=data[i].employer_id
             bg.innerHTML+=`<div id="jobListing, `+i+`" class="jobListing">
             <h1 id="title,`+i+`" class="title">${data[i]["title"]}</h1>
             <h3 id="descr,`+i+`" class="descr">${data[i]["description"]}</h3>
@@ -84,7 +86,7 @@ var bg = document.getElementById("background");
             <div id="addInfo,`+i+`" class="addInfo">
             
             </div>
-            <button id="apply,`+i+`" class="learnMore" onclick="apply(${i},${data[i].id})">Apply</button>
+            <button id="apply,`+i+`" class="learnMore" onclick="apply(${i},${data[i].id},${companyid},${employerid})">Apply</button>
             `;
 
         }}
@@ -117,7 +119,7 @@ var bg = document.getElementById("background");
     })
     }
 
-    function apply(num,id)
+    function apply(num,id ,employerid,companyid )
     {
 
             var info = document.getElementsByClassName("addInfo")[num];
@@ -127,12 +129,12 @@ var bg = document.getElementById("background");
             <input type="file" id="cv" class="cv" placeholder="CV" accept=".pdf"><br>
             <label for="CV">Cover Letter:</label>
             <input type="file" id="coverLetter" class="coverLetter" placeholder="Cover letter" accept=".pdf"><br>
-            <button type="button" onclick="send(${id},${num})">submit</button>
+            <button type="button" onclick="send(${id},${num},${employerid},${companyid})">submit</button>
         </form>`
 
     }
 
-    function send(id,num)
+    function send(id,num, employerid, companyid)
     {
         cv=document.getElementsByClassName("cv")[num]
         coverLetter=document.getElementsByClassName("coverLetter")[num]
@@ -145,8 +147,8 @@ var bg = document.getElementById("background");
                 "cover_letter": JSON.stringify(coverLetter.files) ,
                 "advertisement_id": id ,
                 "candidate_id": userId,
-                "employer_id": 1,
-                "company_id" : 1
+                "employer_id": employerid,
+                "company_id" : companyid
             })
         })
     }
