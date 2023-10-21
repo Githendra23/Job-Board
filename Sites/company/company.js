@@ -1,3 +1,66 @@
+var useremail=""
+var userId=""
+var userRole=""
+
+console.log(getCookie("token"))
+
+function getCookie(cookie)
+{
+    cookiestring = document.cookie.split(';')
+    for (let i=0; i<cookiestring.length;i++)
+    {
+        cookiepair=cookiestring[i].split("=")
+        if (cookiepair[0] == cookie)
+        {
+            return cookiepair[1]
+        }
+    }
+}
+
+fetch("http://localhost:8080/verifyToken",
+    {method:"POST",
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body:JSON.stringify({"token" : getCookie("token")})
+})
+.then(function(response)
+{
+    if (response.ok) {
+        {return response.json();}
+    } else {
+        window.alert("there has been an error, returning you to login page")
+        window.location.href="../login/login.html"
+        return response.json().then((data) => {
+            console.error(data)})
+            
+    }
+})
+.then(function(data)
+{
+    console.log(data)
+    userId=data["id"]
+    useremail=data["email"]
+    userRole=data["role"]
+    loadtable("employer")
+})
+
+if(userRole=="user" || userRole=="employer")
+{
+    window.location.href="../user"
+}
+
+
+
+
+function logout()
+{
+    document.cookie="token=;expires=Thu, 01 Jan 1970 00:00:00 UTC"
+    window.location.href="../login/login.html"
+}
+
+
 content=document.getElementById("content");
 spInput=document.getElementById("specialInput");
 
@@ -5,7 +68,9 @@ bg=document.getElementsByClassName("background")[0];
 
 function loadtable(tabledb)
 {
-    
+    console.log(userRole)
+console.log(useremail)
+console.log(userId)
     inputs=[]
     tableLink=JSON.stringify(tabledb)
     fetch("http://localhost:8080/"+tabledb)
@@ -38,21 +103,23 @@ function loadtable(tabledb)
                 })
                 table+="<th></th><th></th></tr>"
                 for(let i=0; i<Object.keys(data).length; i++)
-                {
-                table+=`<tr>`
-                Object.keys(data[0]).forEach(function(key) 
                     {
-                        if (key!=="createdAt" && key!=="updatedAt" && key!=="company_id")
-                            table+=`<td class="tabValue">${data[i][key]}</td>`
-                    })
-                    table+=`<td><button onclick=edit(${i})>edit</button></td>
-                    <td><button onclick=deletedb('${tableLink}','${data[i].id}')>delete</button></td>
-                    </tr>`
+                        if (data[i].company_id==userId)
+                        {
+                    table+=`<tr>`
+                    Object.keys(data[0]).forEach(function(key) 
+                        {
+                            if (key!=="createdAt" && key!=="updatedAt" && key!=="company_id")
+                                table+=`<td class="tabValue">${data[i][key]}</td>`
+                        })
+                        table+=`<td><button onclick=edit(${i})>edit</button></td>
+                        <td><button onclick=deletedb('${tableLink}','${data[i].id}')>delete</button></td>
+                        </tr>`
+                    }
+                    table+="</table>"
+                    content.innerHTML=table
                 }
-                table+="</table>"
-                content.innerHTML=table
-            }
-            content.innerHTML+=`<br><button onclick=add('${tableLink}')>Add</button>`     
+                content.innerHTML+=`<br><button onclick=add('${tableLink}')>Add</button>`}     
 })
 }
 
@@ -72,7 +139,7 @@ function add(table)
         spInput.innerHTML=""
         for (let i=0; i<Object.keys(inputs).length;i++)
         {
-            if (inputs[i]!== "updatedAt" && inputs[i]!== "createdAt")
+            if (inputs[i]!== "updatedAt" && inputs[i]!== "createdAt" && inputs[i]!== "id")
             {
                 spInput.innerHTML+=`<input type="text" placeholder=${inputs[i]} class="toSend" id=${inputs[i]}>`
                 inputAmt+=1
