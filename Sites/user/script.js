@@ -1,5 +1,65 @@
+let useremail
+let userId
+let userRole
+
+console.log(getCookie("token"))
+
+function getCookie(cookie)
+{
+    cookiestring = document.cookie.split(';')
+    for (let i=0; i<cookiestring.length;i++)
+    {
+        cookiepair=cookiestring[i].split("=")
+        if (cookiepair[0] == cookie)
+        {
+            return cookiepair[1]
+        }
+    }
+}
+
+fetch("http://localhost:8080/verifyToken",
+    {method:"POST",
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body:JSON.stringify({"token" : getCookie("token")})
+})
+.then(function(response)
+{
+    if (response.ok) {
+        {return response.json();}
+    } else {
+        window.alert("there has been an error, returning you to login page")
+        window.location.href="../login/login.html"
+        return response.json().then((data) => {
+            console.error(data)})
+            
+    }
+})
+.then(function(data)
+{
+    console.log(data)
+    userId=data.id
+    useremail=data.email
+    userRole=data.role
+    if(userRole==="company")
+{
+    window.location.href="../company/company.html"
+}
+})
+
+console.log(userRole)
+console.log(useremail)
+console.log(userId)
+
+function logout()
+{
+    document.cookie="token=;expires=Thu, 01 Jan 1970 00:00:00 UTC"
+    window.location.href="../login/login.html"
+}
+
 var bg = document.getElementById("background");
-console.log(document.cookie)
 
 
     fetch("http://localhost:8080/advertisement")
@@ -80,14 +140,14 @@ console.log(document.cookie)
         console.log(coverLetter.files)
         fetch("http://localhost:8080/job_application/",{
             method:"POST",
-            body:{
+            body:JSON.stringify({
                 "cv": JSON.stringify(cv.files) ,
                 "cover_letter": JSON.stringify(coverLetter.files) ,
                 "advertisement_id": id ,
-                "candidate_id": 1,
+                "candidate_id": userId,
                 "employer_id": 1,
                 "company_id" : 1
-            }
+            })
         })
     }
 
