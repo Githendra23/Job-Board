@@ -1,12 +1,9 @@
-export function checkToken()
+export function checkToken() 
 {
     let token;
     const cookies = document.cookie.split('; ');
 
-    if (!cookies)
-    {
-        window.location.href = "../login/login.html";
-    }
+    if (!cookies) return Promise.reject('No cookies found');
 
     for (const cookie of cookies) 
     {
@@ -18,13 +15,9 @@ export function checkToken()
         }
     }
 
-    if (token) console.log('Token:', token);
-    else 
-    {
-        window.location.href = "../login/login.html"
-    }
+    if (!token) return Promise.reject('Token not found');
 
-    fetch(`http://localhost:8080/verifyToken`,{
+    return fetch(`http://localhost:8080/verifyToken`, {
         method: "POST",
         body: JSON.stringify({ token: token }),
         headers: {
@@ -32,17 +25,8 @@ export function checkToken()
             'Content-Type': 'application/json'
         }
     })
-    .then(function(response) {
-        if (response.ok)
-        {
-            return response.json();
-        }
-    })
-    .then((data) => {
-        const id = data.id;
-        const email = data.email;
-        const role = data.role;
-
-        return data;
-    })
+    .then(function (response) {
+        if (response.ok) return response.json();
+        else return Promise.reject('Failed to verify token');
+    });
 }
