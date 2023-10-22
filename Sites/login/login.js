@@ -39,6 +39,11 @@ function login()
         }
     })
     .then(function(data){
+        var now = new Date();
+        var time = now.getTime();
+        time += 3600 * 1000;
+        now.setTime(time);
+        
         console.log(data.message)
         msg.innerHTML=`<p class="col-sm-offset-2 col-sm-10">${data.message}</p>`
         document.cookie="token="+data.token+"; path=/"

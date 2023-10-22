@@ -48,6 +48,11 @@ fetch("http://localhost:8080/verifyToken",
 {
     window.location.href="../company/company.html"
 }
+
+    if(userRole==="admin")
+    {
+        window.location.href="../admin/admin.html"
+    }
 })
 
 console.log(userRole)
@@ -126,9 +131,9 @@ var bg = document.getElementById("background");
             isApplying=true;
             info.innerHTML=`<form>
             <label for="CV">CV:</label>
-            <input type="file" id="cv" class="cv" placeholder="CV" accept=".pdf"><br>
+            <input type="file" id="cv" class="cv" name="cv" placeholder="CV" accept=".pdf"><br>
             <label for="CV">Cover Letter:</label>
-            <input type="file" id="coverLetter" class="coverLetter" placeholder="Cover letter" accept=".pdf"><br>
+            <input type="file" id="coverLetter" class="coverLetter" name="coverLetter" placeholder="Cover letter" accept=".pdf"><br>
             <button type="button" onclick="send(${id},${num},${employerid},${companyid})">submit</button>
         </form>`
 
@@ -136,20 +141,38 @@ var bg = document.getElementById("background");
 
     function send(id,num, employerid, companyid)
     {
-        cv=document.getElementsByClassName("cv")[num]
-        coverLetter=document.getElementsByClassName("coverLetter")[num]
-        console.log(cv.files)
-        console.log(coverLetter.files)
+        cv=document.getElementsByClassName("cv")[num].files
+        coverLetter=document.getElementsByClassName("coverLetter")[num].files
+        console.log(cv)
+        console.log(coverLetter)
+        console.log(companyid)
+        console.log(userId)
+        console.log(id)
+        cv=JSON.stringify(cv[0])
+        coverLetter=JSON.stringify(coverLetter[0])
+        content= new FormData
+                content.append("cv", cv)
+                content.append("cover_letter", {coverLetter})
+                content.append("advertisement_id", id)
+                content.append("user_id", userId)
+                content.append("employer_id", employerid)
+                content.append("company_id" , companyid)
+        
+                console.log(content)
         fetch("http://localhost:8080/job_application/",{
             method:"POST",
-            body:JSON.stringify({
-                "cv": JSON.stringify(cv.files) ,
-                "cover_letter": JSON.stringify(coverLetter.files) ,
-                "advertisement_id": id ,
-                "candidate_id": userId,
-                "employer_id": employerid,
-                "company_id" : companyid
+            body: ({
+                content
             })
+        })
+        .then(function(response){
+
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then((data) => {
+                    console.error(data.message)})
+            }
         })
     }
 
