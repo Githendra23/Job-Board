@@ -86,11 +86,6 @@ router.post('/', async (req, res) => {
 
   try
   {
-    if (!title || !description || !address || !employment_contract_type || !country || !wage || !employer_id || !company_id)
-    {
-      return res.status(401).json({ message: 'Missing required information. Please provide all the required fields.' });
-    }
-
     const invalidFields = [];
 
     if (typeof title !== 'string') invalidFields.push('title');
@@ -105,7 +100,7 @@ router.post('/', async (req, res) => {
 
     if (invalidFields.length > 0) 
     {
-      return res.status(401).json({ message: `Invalid data types for fields: ${invalidFields.join(', ')}. Please provide valid data for these fields.` });
+      return res.status(401).json({ message: `Missing required information. Please provide ${missingFields.join(', ')}.` });
     }
 
     const existingEmployer = await Employer.findOne({
