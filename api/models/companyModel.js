@@ -62,11 +62,11 @@ Company.prototype.hashPassword = async function (password)
   }
 };
 
-Company.prototype.generateToken = function () {
+Company.prototype.generateToken = function (role) {
   try 
   {
     const token = jwt.sign(
-      { id: this.id, email: this.email },
+      { id: this.id, email: this.email, role: role },
       secretKey,
       { expiresIn: '1h' }
     );

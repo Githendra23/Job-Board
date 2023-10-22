@@ -38,55 +38,58 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { advertisement_id, company_id, employer_id, cv, cover_letter, user_id } = req.body;
+  const { advertisement_id, company_id, employer_id, user_id } = req.body;
 
-  if (!advertisement_id || !company_id || !cv || !cover_letter || !user_id)
+  if (!advertisement_id || !company_id || !user_id) 
   {
     const missingFields = [];
-
+  
     if (!advertisement_id) missingFields.push('advertisement_id');
     if (!company_id) missingFields.push('company_id');
-    if (!cv) missingFields.push('cv');
-    if (!cover_letter) missingFields.push('cover_letter');
     if (!user_id) missingFields.push('user_id');
   
     return res.status(400).json({
-      message: `Please provide data to create a job application. Missing fields: ${missingFields.join(', ')}.`
+      message: `Please provide data to create a job application. Missing fields: ${missingFields.join(', ')}.`,
     });
   }
   
-  if (!Number.isInteger(advertisement_id) || !Number.isInteger(company_id) || !Number.isInteger(employer_id) || 
-      !Number.isInteger(cv) || !Number.isInteger(cover_letter) || !Number.isInteger(user_id))
-  {
+  if (
+    !Number.isInteger(advertisement_id) ||
+    !Number.isInteger(company_id) ||
+    !Number.isInteger(user_id)
+  ) {
     const invalidFields = [];
-
+  
     if (!Number.isInteger(advertisement_id)) invalidFields.push('advertisement_id');
     if (!Number.isInteger(company_id)) invalidFields.push('company_id');
-    if (!Number.isInteger(employer_id)) invalidFields.push('employer_id');
-    if (!Number.isInteger(cv)) invalidFields.push('cv');
-    if (!Number.isInteger(cover_letter)) invalidFields.push('cover_letter');
     if (!Number.isInteger(user_id)) invalidFields.push('user_id');
   
     return res.status(400).json({
-      message: `Please provide IDs as valid integers. Invalid fields: ${invalidFields.join(', ')}.`
+      message: `Please provide IDs as valid integers. Invalid fields: ${invalidFields.join(', ')}.`,
     });
   }
+
+  const { cv, cover_letter } = req.files;
+
+  if (!cv || !cover_letter) return res.status(400).json({ message: 'Please upload both CV and cover letter as files.' });
 
   try
   {
     const user = await User.findByPk(user_id);
-    const advertisement = await Advertisement.findByPk(advertisement_id);
-    const employer = await Employer.findByPk(employer_id);
-    const company = await Company.findByPk(company_id);
+    const advertisement = await Advertisement.findOne({
+      where: {
+        id: advertisement_id,
+        company_id: company_id,
+        employer_id: employer_id,
+      },
+    });
 
-    if ([user, employer, advertisement, company].every(item => item === null))
+    if ([user, advertisement].every(item => item === null))
     {
       let missingResources = [];
 
       if (!user) missingResources.push('User');
       if (!advertisement) missingResources.push('Advertisement');
-      if (!employer) missingResources.push('Employer');
-      if (!company) missingResources.push('Company');
   
       return res.status(400).json({ message: `${missingResources.join(', ')} don't exist` });
     }
@@ -96,7 +99,6 @@ router.post('/', async (req, res) => {
     });
 
     if (existingUserApplication) return res.status(400).json({ message: 'A job application with the same user already exists.' });
-
 
     const newJobApplication = await JobApplication.create({
       advertisement_id: advertisement_id,
