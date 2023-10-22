@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang ="en">
+<head>
+<meta charset ="utf-8">
+<title> Work Trailer </title>
+<link rel="icon" type="image/x-icon" href="logo.png">
+<link rel="stylesheet" href="slos8.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="background">
+
+        <div class="siteTitle">
+            <h1>Work Trailer</h1>
+            <button class="logout" onclick="logout()">Log out</button>
+        </div>
+
+        <table>
+            <input placeholder="Title" id="title"><br>
+            <textarea placeholder="description" id="desc"></textarea><br>
+            <input type="text" placeholder="Address" id="address"><br>
+            <input type="number" placeholder="wage" id="wage"><br>
+            <input type="text" placeholder="tag" id="tag">
+            <input type="text" placeholder="Contract type" id="contract">
+            <button type="submit" onsubmit="return false" onclick="submit()">Submit</button>
+        </table>
+        <div id="msg">
+            
+        </div>
+    </div>
+    <script src="employer.js"></script>
+</body>
