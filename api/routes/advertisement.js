@@ -86,9 +86,20 @@ router.post('/', async (req, res) => {
 
   try
   {
-    if (!title || !description || !address || !employment_contract_type || !country || !wage || !employer_id || !company_id)
+    const missingFields = [];
+
+    if (!title) missingFields.push('title');
+    if (!description) missingFields.push('description');
+    if (!address) missingFields.push('address');
+    if (!employment_contract_type) missingFields.push('employment_contract_type');
+    if (!country) missingFields.push('country');
+    if (!wage) missingFields.push('wage');
+    if (!employer_id) missingFields.push('employer_id');
+    if (!company_id) missingFields.push('company_id');
+
+    if (missingFields.length > 0) 
     {
-      return res.status(401).json({ message: 'Missing required information. Please provide all the required fields.' });
+      return res.status(401).json({ message: `Missing required information. Please provide ${missingFields.join(', ')}.` });
     }
 
     const invalidFields = [];
