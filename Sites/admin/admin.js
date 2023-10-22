@@ -1,28 +1,70 @@
-import { checkToken } from '../checkToken';
+let useremail
+let userId
+let userRole
 
-document.addEventListener("DOMContentLoaded", function() {
-    checkToken()
-        .then((data) => {
-            switch (data.role) {
-                case 'company':
-                    window.location.href = "../company/company.html";
-                    break;
-                case 'candidate':
-                    window.location.href = "../user/index.html";
-                    break;
-                case 'employer':
-                    // Handle employer case
-                    break;
-                default:
-                    window.location.href = "../login/login.html";
-                    break;
-            }
-        })
-        .catch((error) => {
-            console.error(error);
-            window.location.href = "../login/login.html";
-        });
-});
+
+console.log(getCookie("token"))
+
+function getCookie(cookie)
+{
+    cookiestring = document.cookie.split(';')
+    for (let i=0; i<cookiestring.length;i++)
+    {
+        cookiepair=cookiestring[i].split("=")
+        if (cookiepair[0] == cookie)
+        {
+            return cookiepair[1]
+        }
+    }
+}
+
+fetch("http://localhost:8080/verifyToken",
+    {method:"POST",
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body:JSON.stringify({"token" : getCookie("token")})
+})
+.then(function(response)
+{
+    if (response.ok) {
+        {return response.json();}
+    } else {
+        window.alert("there has been an error, returning you to login page")
+        window.location.href="../login/login.html"
+        return response.json().then((data) => {
+            console.error(data)})
+            
+    }
+})
+.then(function(data)
+{
+    console.log(data)
+    userId=data.id
+    useremail=data.email
+    userRole=data.role
+    if(userRole==="company")
+{
+    window.location.href="../company/company.html"
+}
+
+    if(userRole==="candidate")
+    {
+        window.location.href="../user/"
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
 
 company=document.getElementById("company");
 ad=document.getElementById("ad");
