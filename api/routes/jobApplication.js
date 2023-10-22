@@ -1,10 +1,23 @@
 const express = require('express');
 const JobApplication = require('../models/jobApplicationModel');
-const Employer = require('../models/employerModel');
 const User = require('../models/userModel');
-const Company = require('../models/companyModel');
-const Advertisement = require('../models/advertisementModel')
+const Advertisement = require('../models/advertisementModel');
+const multer = require('multer');
+const fs = require('fs');
 const router = express.Router();
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, 'uploads');
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 router.get('/', async (req, res) => {
   try 
@@ -37,7 +50,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), async (req, res) => {
   const { advertisement_id, company_id, employer_id, user_id } = req.body;
 
   if (!advertisement_id || !company_id || !user_id) 
@@ -52,26 +65,19 @@ router.post('/', async (req, res) => {
       message: `Please provide data to create a job application. Missing fields: ${missingFields.join(', ')}.`,
     });
   }
-  
-  if (
-    !Number.isInteger(advertisement_id) ||
-    !Number.isInteger(company_id) ||
-    !Number.isInteger(user_id)
-  ) {
-    const invalidFields = [];
-  
-    if (!Number.isInteger(advertisement_id)) invalidFields.push('advertisement_id');
-    if (!Number.isInteger(company_id)) invalidFields.push('company_id');
-    if (!Number.isInteger(user_id)) invalidFields.push('user_id');
-  
-    return res.status(400).json({
-      message: `Please provide IDs as valid integers. Invalid fields: ${invalidFields.join(', ')}.`,
-    });
-  }
 
   const { cv, cover_letter } = req.files;
 
   if (!cv || !cover_letter) return res.status(400).json({ message: 'Please upload both CV and cover letter as files.' });
+
+  const wrongFields = [];
+
+  if (typeof company_id !== 'number') wrongFields.push('company_id');
+  if (typeof employer_id !== 'number') wrongFields.push('employer_id');
+  if (typeof user_id !== 'number') wrongFields.push('user_id');
+  if (typeof advertisement_id !== 'number') wrongFields.push('advertisement_id');
+
+  if (wrongFields.length > 0) return res.status(401).json({ message: `Invalid data types for the following fields: ${wrongFields.join(', ')}` });
 
   try
   {
@@ -109,11 +115,27 @@ router.post('/', async (req, res) => {
       cover_letter: cover_letter
     });
 
+    fs.unlink(cv[0].path, (cvError) => {
+      if (cvError) {
+        console.error('Error deleting CV file:', cvError);
+      } else {
+        console.log('CV file deleted successfully');
+      }
+    });
+
+    fs.unlink(cover_letter[0].path, (coverLetterError) => {
+      if (coverLetterError) {
+        console.error('Error deleting cover letter file:', coverLetterError);
+      } else {
+        console.log('Cover letter file deleted successfully');
+      }
+    });
+
     return res.status(200).json({ message: 'Job application saved successfully', jobApplication: newJobApplication });
   }
   catch (error)
   {
-    console.log(error);
+    console.log('\x1b[31m' + error + '\x1b[0m');
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });

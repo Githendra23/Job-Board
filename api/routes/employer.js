@@ -58,7 +58,7 @@ router.post('/register', async (req, res) => {
       });
     }
     else if (typeof name !== 'string' || typeof surname !== 'string' || typeof email !== 'string' ||
-             typeof password !== 'string' || typeof company_id !== 'string')
+             typeof password !== 'string' || typeof company_id !== 'number')
     {
       const wrongFields = [];
 
@@ -121,7 +121,7 @@ router.put('/:id', async (req, res) => {
       if (company_id) updateFields.company_id = company_id;
       if (password) updateFields.password = await employer.hashPassword(password);
 
-      await Employer.update(req.body, {
+      await Employer.update(updateFields, {
         where: { id },
       });
       return res.status(200).json(employer);
