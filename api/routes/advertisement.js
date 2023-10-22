@@ -98,7 +98,7 @@ router.post('/', async (req, res) => {
     if (typeof address !== 'string') invalidFields.push('address');
     if (typeof employment_contract_type !== 'string') invalidFields.push('employment_contract_type');
     if (typeof country !== 'string') invalidFields.push('country');
-    if (typeof tag !== 'string') invalidFields.push('tag');
+    if (typeof tag !== 'string' && tag) invalidFields.push('tag');
     if (typeof wage !== 'number') invalidFields.push('wage');
     if (typeof employer_id !== 'number') invalidFields.push('employer_id');
     if (typeof company_id !== 'number') invalidFields.push('company_id');
