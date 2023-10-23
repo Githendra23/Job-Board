@@ -181,7 +181,7 @@ router.post('/login', async (req, res) => {
     const employer = await Employer.findOne({ where: { email } });
     if (employer)
     {
-      const isMatch = await Employer.comparePassword(password);
+      const isMatch = await employer.comparePassword(password);
 
       if (isMatch) 
       {
