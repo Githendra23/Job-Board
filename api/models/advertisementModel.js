@@ -19,6 +19,10 @@ const Advertisement = sequelize.define('Advertisement', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  country: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   employment_contract_type: {
     type: DataTypes.STRING,
     allowNull: false,
