@@ -69,7 +69,7 @@ router.delete('/:id', async (req, res) => {
     const advertisement = await Advertisement.findByPk(id);
     if (advertisement) 
     {
-      await Advertisement.destroy();
+      await advertisement.destroy();
       return res.status(200).json({ message: 'Advertisement deleted successfully' });
     } 
     else return res.status(404).json({ message: 'Advertisement not found' });
