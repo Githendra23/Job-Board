@@ -3,7 +3,6 @@ let userId
 let userRole
 let company_id
 
-
 console.log(getCookie("token"))
 
 function getCookie(cookie)

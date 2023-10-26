@@ -1,3 +1,5 @@
+import { checkToken } from '../checkToken';
+
 let useremail;
 let userId;
 let userRole;
@@ -13,12 +15,19 @@ document.addEventListener("DOMContentLoaded", function() {
                     window.location.href = "../admin/admin.html";
                     break;
                 case 'employer':
-                    // Handle employer case
-                    break;
-                default:
-                    window.location.href = "../login/login.html";
+                    window.location.href = "../employer/employer.html";
                     break;
             }
+
+            console.log(data);
+            userId = data.id;
+            useremail = data.email;
+            userRole = data.role;
+
+            console.log(userRole);
+            console.log(useremail);
+            console.log(userId);
+
         })
         .catch((error) => {
             console.error(error);
@@ -38,7 +47,7 @@ function getCookie(cookie) {
     }
 }
 
-fetch("http://localhost:8080/verifyToken", {
+/* fetch("http://localhost:8080/verifyToken", {
     method: "POST",
     headers: {
         'Accept': 'application/json',
@@ -52,9 +61,7 @@ fetch("http://localhost:8080/verifyToken", {
         } else {
             window.alert("There has been an error, returning you to the login page");
             window.location.href = "../login/login.html";
-            return response.json().then((data) => {
-                console.error(data);
-            });
+            return Promise.reject('Error occurred while fetching data.');
         }
     })
     .then(function (data) {
@@ -65,16 +72,13 @@ fetch("http://localhost:8080/verifyToken", {
         if (userRole === "company") {
             window.location.href = "../company/company.html";
         }
-    });
-
-console.log(userRole);
-console.log(useremail);
-console.log(userId);
-
-function logout() {
-    document.cookie = "token=;expires=Thu, 01 Jan 1970 00:00:00 UTC";
-    window.location.href = "../login/login.html";
-}
+        console.log(userRole);
+        console.log(useremail);
+        console.log(userId);
+    })
+    .catch((error) => {
+        console.error(error);
+    }); */
 
 const bg = document.getElementById("background");
 
@@ -134,7 +138,7 @@ function apply(num, id, employerid, companyid) {
             <label for="CV">CV:</label>
             <input type="file" id="cv" class="cv" placeholder="CV" name="cv" accept=".pdf"><br>
             <label for="CV">Cover Letter:</label>
-            <input type="file" id="coverLetter" name="cover_letter" class="coverLetter" placeholder="Cover letter" accept=".pdf"><br>
+            <input type file id="coverLetter" name="cover_letter" class="coverLetter" placeholder="Cover letter" accept=".pdf"><br>
             <button type="button" onclick="send(${id}, ${num}, ${employerid}, ${companyid})">Submit</button>
         </form>
     `;

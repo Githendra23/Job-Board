@@ -1,6 +1,35 @@
+import { checkToken } from '../checkToken';
+
 var useremail=""
 var userId=""
 var userRole=""
+
+document.addEventListener("DOMContentLoaded", function() {
+    checkToken()
+        .then((data) => {
+            switch (data.role) {
+                case 'candidate':
+                    window.location.href = "../user/";
+                    break;
+                case 'admin':
+                    window.location.href = "../admin/admin.html";
+                    break;
+                case 'employer':
+                    window.location.href = "../employer/employer.html";
+                    break;
+            }
+
+            console.log(data)
+            userId=data["id"]
+            useremail=data["email"]
+            userRole=data["role"]
+            loadtable("employer")
+        })
+        .catch((error) => {
+            console.error(error);
+            window.location.href = "../login/login.html";
+        });
+});
 
 console.log(getCookie("token"))
 
@@ -17,7 +46,7 @@ function getCookie(cookie)
     }
 }
 
-fetch("http://localhost:8080/verifyToken",
+/* fetch("http://localhost:8080/verifyToken",
     {method:"POST",
     headers: {
         'Accept': 'application/json',
@@ -49,7 +78,7 @@ fetch("http://localhost:8080/verifyToken",
 if(userRole=="user" || userRole=="employer")
 {
     window.location.href="../user"
-}
+} */
 
 
 
