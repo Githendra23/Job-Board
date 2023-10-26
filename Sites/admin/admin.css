@@ -75,3 +75,9 @@ body table, body .table{
     max-width: 100%;
     position: fixed;
 }
+.logout{
+    position: absolute;
+    /* float: right; */
+    right: 0;
+    
+}

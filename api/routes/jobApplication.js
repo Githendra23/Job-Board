@@ -50,8 +50,78 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/files', async (req, res) => {
+  const { user_id, advertisement_id } = req.body;
+
+  try 
+  {
+    const missingFields = [];
+  
+    if (!advertisement_id) missingFields.push('advertisement_id');
+    if (!user_id) missingFields.push('user_id');
+  
+    if (missingFields.length > 0) res.status(400).json({ message: `Please provide data to create a job application. Missing fields: ${missingFields.join(', ')}.` });
+
+    const wrongFields = [];
+
+    if (typeof user_id !== 'number') wrongFields.push('user_id');
+    if (typeof advertisement_id !== 'number') wrongFields.push('advertisement_id');
+
+    if (wrongFields.length > 0) return res.status(401).json({ message: `Invalid data types for the following fields: ${wrongFields.join(', ')}` });
+
+    const jobApplication = await JobApplication.findOne({ 
+      where: { 
+        user_id: user_id, advertisement_id: advertisement_id 
+      }, 
+    });
+
+    if (jobApplication)
+    {
+      const cvPath = jobApplication.cv;
+      const coverLetterPath = jobApplication.cover_letter;
+
+      if (cvPath && coverLetterPath) 
+      {
+        const cvFileName = path.basename(cvPath);
+        const coverLetterFileName = path.basename(coverLetterPath);
+
+        // Set appropriate response headers
+        res.setHeader('Content-disposition', `attachment; filename=${cvFileName}`);
+        res.setHeader('Content-type', 'application/pdf'); // Change content type accordingly
+
+        // Send the cv file as a download
+        res.download(cvPath, cvFileName, (err) => {
+          if (err) 
+          {
+            console.error('\x1b[31m' + 'Error sending cv file: ' + err + + ' \x1b[0m');
+            return res.status(500).json({ message: 'Internal Server Error' });
+          }
+        });
+
+        res.setHeader('Content-disposition', `attachment; filename=${coverLetterFileName}`);
+        res.setHeader('Content-type', 'application/pdf'); // Change content type accordingly
+
+        // Send the cover letter file as a download
+        res.download(coverLetterPath, coverLetterFileName, (err) => {
+          if (err) {
+            console.error('Error sending cover letter file:', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
+          }
+        });
+      } 
+      else return res.status(404).json({ message: 'Files not found' });
+    } 
+    else return res.status(404).json({ message: 'Job Application not found' });
+  }
+  catch (error)
+  {
+    console.log('\x1b[31m' + error + '\x1b[0m');
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), async (req, res) => {
-  const { advertisement_id, company_id, employer_id, user_id } = req.body;
+  let { advertisement_id, company_id, employer_id, user_id } = req.body;
 
   if (!advertisement_id || !company_id || !user_id) 
   {
@@ -71,6 +141,18 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
   if (!cv || !cover_letter) return res.status(400).json({ message: 'Please upload both CV and cover letter as files.' });
 
   const wrongFields = [];
+
+  try 
+  {
+    company_id = parseInt(company_id);
+    user_id = parseInt(user_id);
+    employer_id = parseInt(employer_id);
+    advertisement_id = parseInt(advertisement_id);
+  }
+  catch (error)
+  {
+    console.log(error);
+  }
 
   if (typeof company_id !== 'number') wrongFields.push('company_id');
   if (typeof employer_id !== 'number') wrongFields.push('employer_id');
@@ -101,7 +183,7 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
     }
     
     const existingUserApplication = await JobApplication.findOne({
-      where: { user_id: user_id }
+      where: { user_id: user_id, advertisement_id: advertisement_id }
     });
 
     if (existingUserApplication) return res.status(400).json({ message: 'A job application with the same user already exists.' });
@@ -136,6 +218,21 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
   catch (error)
   {
     console.log('\x1b[31m' + error + '\x1b[0m');
+    fs.unlink(cv[0].path, (cvError) => {
+      if (cvError) {
+        console.error('Error deleting CV file:', cvError);
+      } else {
+        console.log('CV file deleted successfully');
+      }
+    });
+
+    fs.unlink(cover_letter[0].path, (coverLetterError) => {
+      if (coverLetterError) {
+        console.error('Error deleting cover letter file:', coverLetterError);
+      } else {
+        console.log('Cover letter file deleted successfully');
+      }
+    });
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });

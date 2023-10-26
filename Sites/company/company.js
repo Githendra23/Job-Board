@@ -1,35 +1,6 @@
-import { checkToken } from '../checkToken';
-
 var useremail=""
 var userId=""
 var userRole=""
-
-document.addEventListener("DOMContentLoaded", function() {
-    checkToken()
-        .then((data) => {
-            switch (data.role) {
-                case 'candidate':
-                    window.location.href = "../user/";
-                    break;
-                case 'admin':
-                    window.location.href = "../admin/admin.html";
-                    break;
-                case 'employer':
-                    window.location.href = "../employer/employer.html";
-                    break;
-            }
-
-            console.log(data)
-            userId=data["id"]
-            useremail=data["email"]
-            userRole=data["role"]
-            loadtable("employer")
-        })
-        .catch((error) => {
-            console.error(error);
-            window.location.href = "../login/login.html";
-        });
-});
 
 console.log(getCookie("token"))
 
@@ -46,7 +17,7 @@ function getCookie(cookie)
     }
 }
 
-/* fetch("http://localhost:8080/verifyToken",
+fetch("http://localhost:8080/verifyToken",
     {method:"POST",
     headers: {
         'Accept': 'application/json',
@@ -78,7 +49,7 @@ function getCookie(cookie)
 if(userRole=="user" || userRole=="employer")
 {
     window.location.href="../user"
-} */
+}
 
 
 
@@ -144,10 +115,11 @@ console.log(userId)
                         table+=`<td><button onclick=edit(${i})>edit</button></td>
                         <td><button onclick=deletedb('${tableLink}','${data[i].id}')>delete</button></td>
                         </tr>`
-                    }
+                    }}
                     table+="</table>"
+                    console.log(table)
                     content.innerHTML=table
-                }
+                
                 content.innerHTML+=`<br><button onclick=add('${tableLink}')>Add</button>`}     
 })
 }
