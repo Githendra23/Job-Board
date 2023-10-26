@@ -115,10 +115,11 @@ console.log(userId)
                         table+=`<td><button onclick=edit(${i})>edit</button></td>
                         <td><button onclick=deletedb('${tableLink}','${data[i].id}')>delete</button></td>
                         </tr>`
-                    }
+                    }}
                     table+="</table>"
+                    console.log(table)
                     content.innerHTML=table
-                }
+                
                 content.innerHTML+=`<br><button onclick=add('${tableLink}')>Add</button>`}     
 })
 }

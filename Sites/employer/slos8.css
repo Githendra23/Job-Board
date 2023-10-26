@@ -1,0 +1,111 @@
+html{
+    background-color: #0d2b45;
+    min-height: 100%;
+    min-width: 100%;
+}
+.background{
+    color: #ffecd6;
+    align-items: center;
+    background-color: #0d2b45;
+    min-height: 100%;
+    min-width: 100%;
+}
+
+body{
+    padding: 0;
+    margin: 0;
+    background-color: #ffaa5e;
+    color:#ffaa5e
+}
+.siteTitle{
+    text-align: center;
+    background-color: #ffaa5e;
+}
+
+.jobListing{
+    margin: 1%;
+    /* margin-bottom: 10%; */
+    background-color: #544e68;
+    color: #ffecd6;
+    padding-bottom: 10px;
+    border-style:outset;
+    border-color: #d08159;
+}
+
+.learnMore{
+    position:inherit;
+    /* margin-left: 85%; */
+    background-color: #203c56;
+    color: #ffaa5e;
+    border-color: #ffecd6;
+    
+}
+
+.addInfo{
+    background-color: #8d697a;
+    border: 1px inset;
+    margin: 5px;
+    margin-top: 15px;
+}
+
+.descr{
+    background-color: #8d697a;
+}
+
+.tag{
+    color:#d08159
+}
+table,input{
+    margin: 2%;
+    /* max-width: 94%; */
+    width: 100%;
+}
+
+th{
+    background:linear-gradient(#d08159,#d08159);
+    color:#ffecd6;
+}
+
+td,input{
+    background: linear-gradient(#8d697a,#8d697a);
+    color:#ffecd6;
+    border:solid 1px #ffaa5e;
+}
+body table, body .table{
+    /* color: #ffecd6; */
+    --bs-table-color: #ffecd6;
+    border:solid 1px #ffaa5e;
+}
+button{
+    color: #ffecd6;
+    background-color: rgba(59, 45, 5, 0.13);
+    border-color: rgba(255, 240, 31, 0.274);
+}
+.specialInput{
+    bottom:0;
+    margin-bottom: 5px;
+    max-width: 100%;
+    position: fixed;
+    background-color: #0d2b45;
+}
+
+::placeholder{
+    color:#ffaa5e;
+}
+
+textarea
+{
+    background: linear-gradient(#8d697a,#8d697a);
+    color:#ffecd6;
+    border:solid 1px #ffaa5e;
+    resize: both;
+    width: 100%;
+}
+
+.test{
+    color: yellow;
+}
+
+.space{
+    margin: 30%;
+}
