@@ -27,6 +27,10 @@ export function checkToken()
     })
     .then(function (response) {
         if (response.ok) return response.json();
-        else return Promise.reject('Failed to verify token');
+        else 
+        {
+            document.cookie = token + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            return Promise.reject('Failed to verify token');
+        }
     });
 }

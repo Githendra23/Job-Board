@@ -7,8 +7,12 @@ const JobApplication = sequelize.define('JobApplication', {
     primaryKey: true,
     autoIncrement: true,
   },
-  cv: DataTypes.BLOB,
-  cover_letter: DataTypes.BLOB,
+  cv: {
+    type: Sequelize.DataTypes.BLOB('medium'), // Use 'medium' for BlobLength
+  },
+  cover_letter: {
+    type: Sequelize.DataTypes.BLOB('medium'), // Use 'medium' for BlobLength
+  },
   user_id: {
     type: DataTypes.INTEGER,
     references: {
@@ -16,7 +20,6 @@ const JobApplication = sequelize.define('JobApplication', {
       key: 'id',
       name: 'user_id'
     },
-    unique: true
   },
   advertisement_id: {
     type: DataTypes.INTEGER,
