@@ -17,7 +17,7 @@ services:
       - db
 
   web:
-    build: ./sites
+    build: ./site
     depends_on:
       - db
       - api
