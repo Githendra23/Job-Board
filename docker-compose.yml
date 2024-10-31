@@ -1,0 +1,23 @@
+version: '1'
+services:
+  db:
+    build: ./db
+    image: mysql
+    environment:
+      - MYSQL_USER: root
+      - MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./tmp/db:/var/lib/mysql/data
+
+  api:
+    build: ./api
+    depends_on:
+      - db
+
+  web:
+    build: ./sites
+    depends_on:
+      - db
+      - api
