@@ -1,23 +1,32 @@
-version: '1'
+version: '3.8'
 services:
   db:
-    build: ./db
-    image: mysql
+    build:
+      context: ./db
+      dockerfile: Dockerfile
     environment:
-      - MYSQL_USER: root
-      - MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_jobboard
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - ./tmp/db:/var/lib/mysql/data
+      - db_data:/var/lib/mysql
 
   api:
-    build: ./api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      DB_DIALECT: mysql
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: db_jobboard
+      PORT: 3000
+    ports:
+      - "3000:3000"
     depends_on:
       - db
 
-  web:
-    build: ./site
-    depends_on:
-      - db
-      - api
+volumes:
+  db_data:

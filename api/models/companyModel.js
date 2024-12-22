@@ -47,17 +47,14 @@ Company.prototype.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-Company.prototype.hashPassword = async function (password)
-{
-  try
-  {
+Company.prototype.hashPassword = async function (password) {
+  try {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     return hashedPassword;
   }
-  catch (error)
-  {
+  catch (error) {
     console.log(error);
   }
 };

@@ -30,7 +30,7 @@ const Employer = sequelize.define('Employer', {
   company_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Company',
+      model: 'company',
       key: 'id',
       name: 'company_id'
     },
