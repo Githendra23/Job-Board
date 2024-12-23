@@ -1,3 +1,6 @@
 *.html
 *.pdf
 ./sites
+**/node_modules/
+**/.nuxt/
+**/.idea/
