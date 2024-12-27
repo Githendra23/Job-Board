@@ -4,7 +4,7 @@ const User = require('../models/userModel');
 const Company = require('../models/companyModel');
 const Employer = require('../models/employerModel');
 const jwt = require('jsonwebtoken');
-const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
+const { SECRET_KEY } = process.env;
 
 router.post('/', async (req, res) => {
     const tokenKey = Object.keys(req.cookies).find(key => key.startsWith('jwt_token'));
@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     try {
         let role;
 
-        const decoded = jwt.verify(token, secretKey);
+        const decoded = jwt.verify(token, SECRET_KEY);
 
         const currentTimestamp = Math.floor(Date.now() / 1000);
         if (decoded.exp && decoded.exp < currentTimestamp) return false;
