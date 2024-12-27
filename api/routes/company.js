@@ -3,16 +3,14 @@ const Company = require('../models/companyModel');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  try 
-  {
+  try {
     const companies = await Company.findAll({
       attributes: { exclude: ['password'] },
     });
 
     return res.status(200).json(companies);
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -21,16 +19,17 @@ router.get('/', async (req, res) => {
 router.get('/logo/:id', async (req, res) => {
   const { id } = req.params;
 
-  try 
-  {
+  try {
     const company = await Company.findByPk(id);
 
-    if (company && company.logo) 
-    {
-      res.setHeader('Content-Type', 'image/jpeg');
-      res.send(company.logo);
+    if (company) {
+      if (company.logo) {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.send(company.logo);
+      }
+      else res.status(404).json({ message: 'Company logo missing' });
     } 
-    else res.status(404).json({ message: 'Company not found or logo missing' });
+    else res.status(404).json({ message: 'Company not found' });
   } 
   catch (error) 
   {
@@ -42,8 +41,7 @@ router.get('/logo/:id', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
-  try 
-  {
+  try {
     const company = await Company.findByPk(id, {
       attributes: { exclude: ['password'] },
     });
@@ -52,20 +50,17 @@ router.get('/:id', async (req, res) => {
     else return res.status(404).json({ message: 'Company not found' });
 
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 router.post('/register', async (req, res) => {
-  try 
-  {
+  try {
     const { name, email, password, description, logo } = req.body;
 
-    if (!name || !email || !password || !description)
-    {
+    if (!name || !email || !password || !description) {
       const missingFields = [];
 
       if (!name)        missingFields.push('name');
@@ -78,8 +73,7 @@ router.post('/register', async (req, res) => {
       });
     }
     else if (typeof name !== 'string' || typeof email !== 'string' ||
-             typeof password !== 'string' || typeof description !== 'string')
-    {
+             typeof password !== 'string' || typeof description !== 'string') {
       const wrongFields = [];
 
       if (typeof name !== 'string')        wrongFields.push('name');
@@ -96,8 +90,7 @@ router.post('/register', async (req, res) => {
 
     if (existingCompany) return res.status(400).json({ message: 'Email already exists' });
 
-    if (logo) 
-    {
+    if (logo) {
       const uploadResult = await company.uploadIMG(logo);
 
       if (uploadResult === false) return res.status(500).json({ message: "Failed to upload the logo. Ensure it's a valid image file." });
@@ -106,17 +99,43 @@ router.post('/register', async (req, res) => {
     const company = Company.build({ name, email, description });
     company.password = await company.hashPassword(password);
 
-    // Generate a token using the user's ID and email
-    const token = company.generateToken();
-
     await company.save();
 
-    return res.status(200).json({ company, token, message: 'Company registered successfully' });
+    return res.status(201).json({ message: 'Company registered successfully' });
   } 
-  catch (error)
-  {
+  catch (error) {
     console.error(error);
     return res.status(400).json({ message: 'Bad Request' });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
+  }
+
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ message: 'Please provide the correct types for email and password.' });
+  }
+
+  try {
+    const company = await Company.findOne({ where: { email } });
+
+    if (company) {
+      const isMatch = await company.comparePassword(password);
+
+      if (isMatch) {
+        const token = company.generateToken();
+        return res.cookie('jwt_token', token, { httpOnly: true }).status(200).json({ message: 'Authentication successful'});
+      }
+    }
+    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
+  }
+  catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -128,15 +147,13 @@ router.put('/:id', async (req, res) => {
   if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
   if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
-  try 
-  {
+  try {
     const company = await Company.findByPk(id, { attributes: { exclude: ['password'] } });
 
     if (!company) return res.status(404).json({ message: 'Company not found' });
     if (!company) return res.status(404).json({ message: 'Company not found' });
 
-    if (email) 
-    {
+    if (email) {
       const existingCompany = await Company.findOne({ where: { email } });
 
       if (existingCompany && existingCompany.id !== company.id) return res.status(400).json({ message: 'Email already exists' });
@@ -154,8 +171,7 @@ router.put('/:id', async (req, res) => {
 
     return res.status(200).json(company);
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(400).json({ message: 'Invalid JSON format. Please check the provided keys and values.' });
   }
@@ -164,55 +180,16 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
-  try 
-  {
+  try {
     const company = await Company.findByPk(id);
-    if (company) 
-    {
+    if (company) {
       await Company.destroy();
       return res.status(200).json({ message: 'Company deleted successfully' });
     } 
     else return res.status(404).json({ message: 'Company not found' });
 
   } 
-  catch (error) 
-  {
-    console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) 
-  {
-    return res.status(400).json({ message: 'Please provide both email and password for authentication.' });
-  }
-
-  if (typeof email !== 'string' || typeof password !== 'string') 
-  {
-    return res.status(400).json({ message: 'Please provide the correct types for email and password.' });
-  }
-
-  try 
-  {
-    const company = await Company.findOne({ where: { email } });
-
-    if (company) 
-    {
-      const isMatch = await company.comparePassword(password);
-
-      if (isMatch) 
-      {
-        const token = company.generateToken();
-        return res.status(200).json({ message: 'Authentication successful', token });
-      }
-    }
-    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
-  } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }

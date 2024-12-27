@@ -3,16 +3,14 @@ const Employer = require('../models/employerModel');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  try 
-  {
+  try {
     const employers = await Employer.findAll({
       attributes: { exclude: ['password'] },
     });
 
     return res.status(200).json(employers);
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -21,8 +19,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
-  try
-  {
+  try {
     const employer = await Employer.findByPk(id, {
       attributes: { exclude: ['password'] },
     });
@@ -31,20 +28,17 @@ router.get('/:id', async (req, res) => {
     else return res.status(404).json({ message: 'Company not found' });
 
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 router.post('/register', async (req, res) => {
-  try 
-  {
+  try {
     const { name, surname, email, password, company_id } = req.body;
 
-    if (!name || !surname || !email || !password || !company_id)
-    {
+    if (!name || !surname || !email || !password || !company_id) {
       const missingFields = [];
 
       if (!name)       missingFields.push('name');
@@ -57,9 +51,9 @@ router.post('/register', async (req, res) => {
         message: `Please provide data to create an employer. Missing fields: ${missingFields.join(', ')}.`
       });
     }
+
     else if (typeof name !== 'string' || typeof surname !== 'string' || typeof email !== 'string' ||
-             typeof password !== 'string' || typeof company_id !== 'number')
-    {
+             typeof password !== 'string' || typeof company_id !== 'number') {
       const wrongFields = [];
 
       if (typeof name !== 'string')       wrongFields.push('name');
@@ -82,15 +76,53 @@ router.post('/register', async (req, res) => {
 
     await employer.save();
 
-    // Generate a token using the user's ID and email
-    const token = employer.generateToken();
-
-    return res.status(200).json({ employer, token, message: 'Employer registered successfully' });
+    return res.status(201).json({ message: 'Employer registered successfully' });
   } 
   catch (error)
   {
     console.error(error);
     return res.status(400).json({ message: 'Bad Request' });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+  {
+    return res.status(400).json({ message: `Please provide ${!email ? 'email' : ''}${!email && !password ? ' and ' : ''}${!password ? 'password' : ''} for authentication.` });
+  }
+  else if (typeof email !== 'string' || typeof password !== 'string')
+  {
+    const wrongFields = [];
+
+    if (typeof email !== 'string') wrongFields.push('email');
+    if (typeof password !== 'string') wrongFields.push('password');
+
+    return res.status(400).json({
+      message: `Please provide both email and password for authentication. Missing fields: ${missingFields.join(', ')}.`
+    });
+  }
+
+  try
+  {
+    const employer = await Employer.findOne({ where: { email } });
+    if (employer)
+    {
+      const isMatch = await employer.comparePassword(password);
+
+      if (isMatch)
+      {
+        const token = employer.generateToken();
+        return res.cookie('jwt_token', token, { httpOnly: true }).status(200).json({ message: 'Authentication successful'});
+      }
+    }
+    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
+  }
+  catch (error)
+  {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -149,47 +181,6 @@ router.delete('/:id', async (req, res) => {
     } 
     else return res.status(404).json({ message: 'Employer not found' });
     
-  } 
-  catch (error) 
-  {
-    console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) 
-  {
-    return res.status(400).json({ message: `Please provide ${!email ? 'email' : ''}${!email && !password ? ' and ' : ''}${!password ? 'password' : ''} for authentication.` });
-  }
-  else if (typeof email !== 'string' || typeof password !== 'string')
-  {
-    const wrongFields = [];
-  
-    if (typeof email !== 'string') wrongFields.push('email');
-    if (typeof password !== 'string') wrongFields.push('password');
-  
-    return res.status(400).json({
-      message: `Please provide both email and password for authentication. Missing fields: ${missingFields.join(', ')}.`
-    });
-  }
-  
-  try 
-  {
-    const employer = await Employer.findOne({ where: { email } });
-    if (employer)
-    {
-      const isMatch = await employer.comparePassword(password);
-
-      if (isMatch) 
-      {
-        const token = employer.generateToken();
-        return res.status(200).json({ message: 'Authentication successful', token });
-      }
-    }
-    return res.status(401).json({ message: 'Authentication failed. Invalid email or password' });
   } 
   catch (error) 
   {

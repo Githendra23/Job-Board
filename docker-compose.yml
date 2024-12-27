@@ -22,20 +22,12 @@ services:
       DB_USER: root
       DB_PASSWORD: root
       DB_NAME: db_jobboard
+      SECRET_KEY: 5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB
       PORT: 4000
     ports:
       - "4000:4000"
     depends_on:
       - db
-
-  web:
-    build:
-      context: ./site
-      dockerfile: Dockerfile
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
 
 volumes:
   db_data:

@@ -20,13 +20,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.get('/', async (req, res) => {
-  try 
-  {
+  try {
     const jobApplication = await JobApplication.findAll();
     return res.status(200).json(jobApplication);
   } 
-  catch (error)
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -35,16 +33,14 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   
-  try 
-  {
+  try {
     const jobApplication = await JobApplication.findByPk(parseInt(id));
 
     if (jobApplication) return res.status(200).json(jobApplication);
     else return res.status(404).json({ message: 'JobApplication not found' });
 
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -53,8 +49,7 @@ router.get('/:id', async (req, res) => {
 router.get('/files', async (req, res) => {
   const { user_id, advertisement_id } = req.body;
 
-  try 
-  {
+  try {
     const missingFields = [];
   
     if (!advertisement_id) missingFields.push('advertisement_id');
@@ -75,13 +70,11 @@ router.get('/files', async (req, res) => {
       }, 
     });
 
-    if (jobApplication)
-    {
+    if (jobApplication) {
       const cvPath = jobApplication.cv;
       const coverLetterPath = jobApplication.cover_letter;
 
-      if (cvPath && coverLetterPath) 
-      {
+      if (cvPath && coverLetterPath) {
         const cvFileName = path.basename(cvPath);
         const coverLetterFileName = path.basename(coverLetterPath);
 
@@ -91,8 +84,7 @@ router.get('/files', async (req, res) => {
 
         // Send the cv file as a download
         res.download(cvPath, cvFileName, (err) => {
-          if (err) 
-          {
+          if (err) {
             console.error('\x1b[31m' + 'Error sending cv file: ' + err + + ' \x1b[0m');
             return res.status(500).json({ message: 'Internal Server Error' });
           }
@@ -113,8 +105,7 @@ router.get('/files', async (req, res) => {
     } 
     else return res.status(404).json({ message: 'Job Application not found' });
   }
-  catch (error)
-  {
+  catch (error) {
     console.log('\x1b[31m' + error + '\x1b[0m');
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -123,8 +114,7 @@ router.get('/files', async (req, res) => {
 router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), async (req, res) => {
   let { advertisement_id, company_id, employer_id, user_id } = req.body;
 
-  if (!advertisement_id || !company_id || !user_id) 
-  {
+  if (!advertisement_id || !company_id || !user_id) {
     const missingFields = [];
   
     if (!advertisement_id) missingFields.push('advertisement_id');
@@ -142,15 +132,13 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
 
   const wrongFields = [];
 
-  try 
-  {
+  try {
     company_id = parseInt(company_id);
     user_id = parseInt(user_id);
     employer_id = parseInt(employer_id);
     advertisement_id = parseInt(advertisement_id);
   }
-  catch (error)
-  {
+  catch (error) {
     console.log(error);
   }
 
@@ -161,8 +149,7 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
 
   if (wrongFields.length > 0) return res.status(401).json({ message: `Invalid data types for the following fields: ${wrongFields.join(', ')}` });
 
-  try
-  {
+  try {
     const user = await User.findByPk(user_id);
     const advertisement = await Advertisement.findOne({
       where: {
@@ -172,8 +159,7 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
       },
     });
 
-    if ([user, advertisement].every(item => item === null))
-    {
+    if ([user, advertisement].every(item => item === null)) {
       let missingResources = [];
 
       if (!user) missingResources.push('User');
@@ -200,7 +186,8 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
     fs.unlink(cv[0].path, (cvError) => {
       if (cvError) {
         console.error('Error deleting CV file:', cvError);
-      } else {
+      }
+      else {
         console.log('CV file deleted successfully');
       }
     });
@@ -215,13 +202,13 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
 
     return res.status(200).json({ message: 'Job application saved successfully', jobApplication: newJobApplication });
   }
-  catch (error)
-  {
+  catch (error) {
     console.log('\x1b[31m' + error + '\x1b[0m');
     fs.unlink(cv[0].path, (cvError) => {
       if (cvError) {
         console.error('Error deleting CV file:', cvError);
-      } else {
+      }
+      else {
         console.log('CV file deleted successfully');
       }
     });
@@ -229,7 +216,8 @@ router.post('/', upload.fields([{ name: 'cv' }, { name: 'cover_letter' }]), asyn
     fs.unlink(cover_letter[0].path, (coverLetterError) => {
       if (coverLetterError) {
         console.error('Error deleting cover letter file:', coverLetterError);
-      } else {
+      }
+      else {
         console.log('Cover letter file deleted successfully');
       }
     });
@@ -243,13 +231,11 @@ router.put('/:id', async (req, res) => {
 
   if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
-  try
-  {
+  try {
     const jobApplication = await JobApplication.findByPk(id);
     const updateFields = {};
 
-    if (user_id)
-    {
+    if (user_id) {
       const existingUserApplication = await JobApplication.findOne({
         where: { user_id: user_id }
       });
@@ -263,15 +249,13 @@ router.put('/:id', async (req, res) => {
     if (advertisement_id) updateFields.advertisement_id = advertisement_id;
     if (employer_id) updateFields.employer_id = employer_id;
 
-    if (jobApplication)
-    {
+    if (jobApplication) {
       await JobApplication.update(updateFields, { where: { id } });
       return res.status(200).json(jobApplication);
     }
     else return res.status(404).json({ message: 'JobApplication not found' });
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(400).json({ message: 'Invalid JSON format. Please check the provided keys and values.' });
   }
@@ -280,19 +264,16 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
-  try 
-  {
+  try {
     const jobApplication = await JobApplication.findByPk(id);
-    if (jobApplication) 
-    {
+    if (jobApplication) {
       await JobApplication.destroy();
       return res.status(200).json({ message: 'JobApplication deleted successfully' });
     } 
     else return res.status(404).json({ message: 'JobApplication not found' });
 
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }

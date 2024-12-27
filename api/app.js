@@ -5,7 +5,12 @@ const cors = require('cors');
 require('dotenv').config();
 const PORT = process.env.PORT;
 
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 app.use(express.json());
 
 const userRoutes = require('./routes/user');

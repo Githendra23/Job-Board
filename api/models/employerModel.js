@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize');
 const jwt = require('jsonwebtoken');
-const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
+const { SECRET_KEY } = process.env;
 
 const Employer = sequelize.define('Employer', {
   id: {
@@ -53,46 +53,39 @@ Employer.prototype.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-Employer.prototype.hashPassword = async function (password)
-{
-  try
-  {
+Employer.prototype.hashPassword = async function (password) {
+  try {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     return hashedPassword;
   }
-  catch (error)
-  {
+  catch (error) {
     console.log(error);
   }
 };
 
 Employer.prototype.generateToken = function (role) {
-  try 
-  {
+  try {
     const token = jwt.sign(
       { id: this.id, email: this.email, role: role },
-      secretKey,
+        SECRET_KEY,
       { expiresIn: '1h' }
     );
 
     return token;
   } 
-  catch (err) 
-  {
+  catch (err) {
     console.error(err);
     return null;
   }
 };
 
 Employer.prototype.getInfoFromToken = function (token) {
-  try 
-  {
-    const decoded = jwt.verify(token, secretKey);
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
 
-    if (decoded) 
-    {
+    if (decoded) {
       const id = decoded.id;
       const email = decoded.email;
       const role = decoded.role;
@@ -102,8 +95,7 @@ Employer.prototype.getInfoFromToken = function (token) {
 
     return null;
   } 
-  catch (err) 
-  {
+  catch (err) {
     console.error(err);
     return null;
   }

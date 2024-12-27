@@ -4,13 +4,11 @@ const Employer = require('../models/employerModel');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  try 
-  {
+  try {
     const advertisement = await Advertisement.findAll();
     return res.status(200).json(advertisement);
   } 
-  catch (error)
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -19,15 +17,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   
-  try 
-  {
+  try {
     const advertisement = await Advertisement.findByPk(id);
 
     if (advertisement) return res.status(200).json(advertisement);
     else return res.status(404).json({ message: 'Advertisement not found' });
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -40,12 +36,10 @@ router.put('/:id', async (req, res) => {
 
   if (!req.body) return res.status(400).json({ message: 'Please provide data to update the database.' });
 
-  try
-  {
+  try {
     const advertisement = await Advertisement.findByPk(id);
 
-    if (advertisement)
-    {
+    if (advertisement) {
       await Advertisement.update(req.body, {
         where: { id },
       });
@@ -54,8 +48,7 @@ router.put('/:id', async (req, res) => {
     else return res.status(404).json({ message: 'Advertisement not found' });
 
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(400).json({ message: 'Invalid JSON format. Please check the provided keys and values.' });
   }
@@ -64,18 +57,15 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
-  try 
-  {
+  try {
     const advertisement = await Advertisement.findByPk(id);
-    if (advertisement) 
-    {
+    if (advertisement) {
       await advertisement.destroy();
       return res.status(200).json({ message: 'Advertisement deleted successfully' });
     } 
     else return res.status(404).json({ message: 'Advertisement not found' });
   } 
-  catch (error) 
-  {
+  catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
@@ -84,8 +74,7 @@ router.delete('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { title, description, address, employment_contract_type, country, wage, tag, employer_id, company_id } = req.body;
 
-  try
-  {
+  try {
     const missingFields = [];
 
     if (!title) missingFields.push('title');
@@ -97,8 +86,7 @@ router.post('/', async (req, res) => {
     if (!employer_id) missingFields.push('employer_id');
     if (!company_id) missingFields.push('company_id');
 
-    if (missingFields.length > 0) 
-    {
+    if (missingFields.length > 0) {
       return res.status(401).json({ message: `Missing required information. Please provide ${missingFields.join(', ')}.` });
     }
 
@@ -114,8 +102,7 @@ router.post('/', async (req, res) => {
     if (typeof employer_id !== 'number') invalidFields.push('employer_id');
     if (typeof company_id !== 'number') invalidFields.push('company_id');
 
-    if (invalidFields.length > 0) 
-    {
+    if (invalidFields.length > 0) {
       return res.status(401).json({ message: `Missing required information. Please provide ${missingFields.join(', ')}.` });
     }
 
@@ -142,8 +129,7 @@ router.post('/', async (req, res) => {
 
     return res.status(200).json({ message: 'Advertisement saved successfully', advertisement: newAdvertisement });
   }
-  catch (error)
-  {
+  catch (error) {
     console.log(error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }

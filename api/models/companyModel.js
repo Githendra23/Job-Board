@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize');
 const jwt = require('jsonwebtoken');
-const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
+const { SECRET_KEY } = process.env;
 const fs = require('fs').promises;
 
 const Company = sequelize.define('Company', {
@@ -64,7 +64,7 @@ Company.prototype.generateToken = function (role) {
   {
     const token = jwt.sign(
       { id: this.id, email: this.email, role: role },
-      secretKey,
+        SECRET_KEY,
       { expiresIn: '1h' }
     );
 
@@ -80,7 +80,7 @@ Company.prototype.generateToken = function (role) {
 Company.prototype.getInfoFromToken = function (token) {
   try 
   {
-    const decoded = jwt.verify(token, secretKey);
+    const decoded = jwt.verify(token, SECRET_KEY);
 
     if (decoded) 
     {

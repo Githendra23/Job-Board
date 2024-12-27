@@ -7,12 +7,12 @@ const jwt = require('jsonwebtoken');
 const secretKey = '5Gf6R7Cz$T6aV3PwYbB9qZrGw*HnMxJ1sK3vL8s$VdKfNjQsThWmZp3s6v9yB';
 
 router.post('/', async (req, res) => {
-    const { token } = req.body;
+    const tokenKey = Object.keys(req.cookies).find(key => key.startsWith('jwt_token'));
+    const token = req.cookies[tokenKey];
 
     if (!token) return res.status(401).json({ message: 'Token not provided' });
   
-    try 
-    {
+    try {
         let role;
 
         const decoded = jwt.verify(token, secretKey);
@@ -25,8 +25,7 @@ router.post('/', async (req, res) => {
         else if (await Employer.findOne({ where: {id: decoded.id, email: decoded.email } })) role = 'employer';
         else return res.status(401).json({ message: 'User not found' });
 
-        switch (role)
-        {
+        switch (role) {
             case 'user':
                 const user = await User.findByPk(decoded.id, {
                     attributes: { exclude: ['password'] },
@@ -51,8 +50,7 @@ router.post('/', async (req, res) => {
                 throw new Error();
         }
     } 
-    catch (error) 
-    {
+    catch (error) {
         console.error(error);
         return res.status(401).json({ message: 'Invalid token' });
     }
