@@ -1,9 +1,12 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 const PORT = process.env.PORT;
+
+app.use(express.json());
 
 app.use(cors({
     origin: '*',
@@ -11,7 +14,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-app.use(express.json());
+
+app.use(cookieParser());
 
 const userRoutes = require('./routes/user');
 const companyRoutes = require('./routes/company');
