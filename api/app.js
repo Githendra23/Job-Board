@@ -3,13 +3,12 @@ const app = express();
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-require('dotenv').config();
 const PORT = process.env.PORT;
 
 app.use(express.json());
 
 app.use(cors({
-    origin: '*',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

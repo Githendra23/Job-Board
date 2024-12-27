@@ -1,6 +1,5 @@
 const express = require('express');
 const User = require('../models/userModel');
-const {token} = require("mysql/lib/protocol/Auth");
 const router = express.Router();
 
 router.get('/', async (req, res) => {

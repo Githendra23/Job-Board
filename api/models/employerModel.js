@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize');
 const jwt = require('jsonwebtoken');
-const { SECRET_KEY } = process.env;
+const SECRET_KEY = process.env.SECRET_KEY;
 
 const Employer = sequelize.define('Employer', {
   id: {

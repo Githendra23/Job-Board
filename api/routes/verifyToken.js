@@ -4,7 +4,7 @@ const User = require('../models/userModel');
 const Company = require('../models/companyModel');
 const Employer = require('../models/employerModel');
 const jwt = require('jsonwebtoken');
-const { SECRET_KEY } = process.env;
+const SECRET_KEY = process.env.SECRET_KEY;
 
 router.post('/', async (req, res) => {
     const tokenKey = Object.keys(req.cookies).find(key => key.startsWith('jwt_token'));
